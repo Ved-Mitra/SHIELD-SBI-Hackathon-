@@ -6,7 +6,11 @@ on:
       - "iosApp/**"
       - "shared/**"
       - "androidApp/**"
+      - "gradle/**"
       - ".github/workflows/**"
+      - "gradlew"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
   pull_request:
     paths:
       - "iosApp/**"
@@ -16,7 +20,7 @@ on:
 
 jobs:
   build-ios-demo:
-    runs-on: macos-latest
+    runs-on: macos-14 # Specifically using macOS 14 for stable Xcode 15/16 environments
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,26 +32,21 @@ jobs:
           java-version: "17"
 
       - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: "8.7"
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Build shared framework
-        run: |
-          if [ -f "Android Demo/gradlew" ] && [ -f "Android Demo/gradle/wrapper/gradle-wrapper.jar" ]; then
-            "Android Demo/gradlew" -p "Android Demo" :shared:packForXcode
-          else
-            gradle -p "Android Demo" :shared:packForXcode
-          fi
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
 
-      - name: Build iOS demo (simulator)
+
+      # Compiles the native iOS application UI wrapper
+      - name: Build iOS App (Simulator)
         run: |
           xcodebuild \
-            -project "iOS Demo/SHIELDemo.xcodeproj" \
-            -scheme SHIELDemo \
+            -project "iosApp/iosApp.xcodeproj" \
+            -scheme iosApp \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone 16" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
             CODE_SIGNING_ALLOWED=NO \
-            FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../Android Demo/shared/build/xcode-frameworks"' \
+            FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
             build
