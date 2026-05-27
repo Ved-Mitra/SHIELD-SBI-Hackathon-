@@ -1,0 +1,45 @@
+name: Android Demo Build
+
+on:
+  push:
+    paths:
+      - "androidApp/**"
+      - "shared/**"
+      - "gradle/**"
+      - ".github/workflows/**"
+      - "gradlew"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+  pull_request:
+    paths:
+      - "androidApp/**"
+      - "shared/**"
+  workflow_dispatch:
+
+jobs:
+  build-android-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3 # Updated to the latest official Gradle action
+
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
+
+      # Fixed to run from the root directory and changed module name to :androidApp
+      - name: Build Android demo
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew :androidApp:assembleDebug
+          else
+            gradle :androidApp:assembleDebug
+          fi

@@ -1,0 +1,52 @@
+name: iOS Demo Build
+
+on:
+  push:
+    paths:
+      - "iosApp/**"
+      - "shared/**"
+      - "androidApp/**"
+      - "gradle/**"
+      - ".github/workflows/**"
+      - "gradlew"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+  pull_request:
+    paths:
+      - "iosApp/**"
+      - "shared/**"
+      - "androidApp/**"
+  workflow_dispatch:
+
+jobs:
+  build-ios-demo:
+    runs-on: macos-14 # Specifically using macOS 14 for stable Xcode 15/16 environments
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
+
+
+      # Compiles the native iOS application UI wrapper
+      - name: Build iOS App (Simulator)
+        run: |
+          xcodebuild \
+            -project "iosApp/iosApp.xcodeproj" \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
+            CODE_SIGNING_ALLOWED=NO \
+            FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
+            build
