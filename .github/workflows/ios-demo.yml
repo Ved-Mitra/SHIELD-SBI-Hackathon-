@@ -37,6 +37,8 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x gradlew
 
+      - name: Select Xcode Version
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
 
       # Compiles the native iOS application UI wrapper
       - name: Build iOS App (Simulator)
@@ -46,7 +48,7 @@ jobs:
             -scheme iosApp \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -destination "platform=iOS Simulator,name=iPhone 16" \
             CODE_SIGNING_ALLOWED=NO \
             FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
             build
