@@ -3,17 +3,15 @@ name: iOS Demo Build
 on:
   push:
     paths:
-      - "iOS Demo/**"
-      - "iosMain/**"
-      - "commonMain/**"
-      - "Android Demo/**"
+      - "iosApp/**"
+      - "shared/**"
+      - "androidApp/**"
       - ".github/workflows/**"
   pull_request:
     paths:
-      - "iOS Demo/**"
-      - "iosMain/**"
-      - "commonMain/**"
-      - "Android Demo/**"
+      - "iosApp/**"
+      - "shared/**"
+      - "androidApp/**"
   workflow_dispatch:
 
 jobs:

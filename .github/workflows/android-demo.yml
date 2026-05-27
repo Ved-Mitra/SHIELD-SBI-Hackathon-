@@ -3,15 +3,14 @@ name: Android Demo Build
 on:
   push:
     paths:
-      - "Android Demo/**"
-      - "commonMain/**"
-      - "androidMain/**"
+      - "androidApp/**"
+      - "shared/**"
+      - "gradle/**"
       - ".github/workflows/**"
   pull_request:
     paths:
-      - "Android Demo/**"
-      - "commonMain/**"
-      - "androidMain/**"
+      - "androidApp/**"
+      - "shared/**"
   workflow_dispatch:
 
 jobs:
