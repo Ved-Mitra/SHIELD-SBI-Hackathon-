@@ -1,0 +1,55 @@
+name: iOS Demo Build
+
+on:
+  push:
+    paths:
+      - "iOS Demo/**"
+      - "iosMain/**"
+      - "commonMain/**"
+      - "Android Demo/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "iOS Demo/**"
+      - "iosMain/**"
+      - "commonMain/**"
+      - "Android Demo/**"
+  workflow_dispatch:
+
+jobs:
+  build-ios-demo:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: "8.7"
+
+      - name: Build shared framework
+        run: |
+          if [ -f "Android Demo/gradlew" ] && [ -f "Android Demo/gradle/wrapper/gradle-wrapper.jar" ]; then
+            "Android Demo/gradlew" -p "Android Demo" :shared:packForXcode
+          else
+            gradle -p "Android Demo" :shared:packForXcode
+          fi
+
+      - name: Build iOS demo (simulator)
+        run: |
+          xcodebuild \
+            -project "iOS Demo/SHIELDemo.xcodeproj" \
+            -scheme SHIELDemo \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "platform=iOS Simulator,name=iPhone 16" \
+            CODE_SIGNING_ALLOWED=NO \
+            FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../Android Demo/shared/build/xcode-frameworks"' \
+            build

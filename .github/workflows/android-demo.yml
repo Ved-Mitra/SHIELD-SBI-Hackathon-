@@ -1,0 +1,41 @@
+name: Android Demo Build
+
+on:
+  push:
+    paths:
+      - "Android Demo/**"
+      - "commonMain/**"
+      - "androidMain/**"
+      - ".github/workflows/**"
+  pull_request:
+    paths:
+      - "Android Demo/**"
+      - "commonMain/**"
+      - "androidMain/**"
+  workflow_dispatch:
+
+jobs:
+  build-android-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: "8.7"
+
+      - name: Build Android demo
+        run: |
+          if [ -f "Android Demo/gradlew" ] && [ -f "Android Demo/gradle/wrapper/gradle-wrapper.jar" ]; then
+            "Android Demo/gradlew" -p "Android Demo" :app:assembleDebug
+          else
+            gradle -p "Android Demo" :app:assembleDebug
+          fi
