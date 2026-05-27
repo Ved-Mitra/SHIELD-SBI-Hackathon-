@@ -13,37 +13,47 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import shield.shared.generated.resources.Res
-import shield.shared.generated.resources.compose_multiplatform
+import kotlinx.coroutines.launch
+import org.example.shield.gate.AppAttestation
+import org.example.shield.gate.AttestationResult
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
+        var attestationStatus by remember { mutableStateOf("Verifying App Authenticity (Gate 1)...") }
+        val scope = rememberCoroutineScope()
+
+        LaunchedEffect(Unit) {
+            scope.launch {
+                val result = AppAttestation().verifyAppIntegrity()
+                attestationStatus = when (result) {
+                    is AttestationResult.Success -> "Gate 1 Passed: Hardware Attested ✓"
+                    is AttestationResult.Failure -> "Gate 1 Failed: ${result.error}"
+                }
+            }
+        }
+
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
+                .background(MaterialTheme.colorScheme.background)
                 .safeContentPadding()
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
         ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+            Text(
+                "This is a demo app based on SHIELD",
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = attestationStatus,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 16.dp)
+            )
         }
     }
 }
