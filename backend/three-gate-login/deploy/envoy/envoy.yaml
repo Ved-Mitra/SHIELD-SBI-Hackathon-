@@ -1,0 +1,69 @@
+static_resources:
+  listeners:
+    - name: gate2_listener
+      address:
+        socket_address:
+          address: 0.0.0.0
+          port_value: 8443
+      filter_chains:
+        - transport_socket:
+            name: envoy.transport_sockets.tls
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+              require_client_certificate: true
+              common_tls_context:
+                tls_certificates:
+                  - certificate_chain:
+                      filename: certs/dev/server.crt
+                    private_key:
+                      filename: certs/dev/server.key
+                validation_context:
+                  trusted_ca:
+                    filename: certs/dev/ca.crt
+          filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: gate2_http
+                route_config:
+                  name: local_route
+                  virtual_hosts:
+                    - name: gate2_service
+                      domains: ["*"]
+                      routes:
+                        - match:
+                            prefix: "/"
+                          route:
+                            cluster: gate2_app
+                http_filters:
+                  - name: envoy.filters.http.router
+                forward_client_cert_details: SANITIZE_SET
+                set_current_client_cert_details:
+                  subject: true
+                  uri: true
+                  dns: true
+                request_headers_to_add:
+                  - header:
+                      key: x-client-dn
+                      value: "%DOWNSTREAM_PEER_SUBJECT%"
+  clusters:
+    - name: gate2_app
+      connect_timeout: 1s
+      type: STATIC
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: gate2_app
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8080
+admin:
+  access_log_path: /tmp/envoy_admin_access.log
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 9901
+
