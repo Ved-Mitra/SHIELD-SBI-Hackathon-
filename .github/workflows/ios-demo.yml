@@ -54,6 +54,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
             IPHONEOS_DEPLOYMENT_TARGET="18.2" \
-            OTHER_LDFLAGS='$(inherited) -Wl,-not_weak_framework,UIUtilities' \
+            OTHER_LDFLAGS='$(inherited)' \
             FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
             build
