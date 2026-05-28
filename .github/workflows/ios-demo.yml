@@ -50,10 +50,10 @@ jobs:
             -scheme iosApp \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination "platform=iOS Simulator,name=iPhone 16,OS=18.2" \
+            -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
-            IPHONEOS_DEPLOYMENT_TARGET="18.5" \
+            IPHONEOS_DEPLOYMENT_TARGET="16.0" \
             OTHER_LDFLAGS='$(inherited)' \
             FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
             build

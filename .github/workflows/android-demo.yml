@@ -39,7 +39,7 @@ jobs:
       - name: Build Android demo
         run: |
           if [ -f "./gradlew" ]; then
-            ./gradlew :androidApp:assembleDebug
+            ./gradlew :androidApp:assembleDebug --no-configuration-cache
           else
-            gradle :androidApp:assembleDebug
+            gradle :androidApp:assembleDebug --no-configuration-cache
           fi
