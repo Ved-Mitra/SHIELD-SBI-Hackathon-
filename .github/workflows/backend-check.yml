@@ -1,0 +1,61 @@
+name: Backend Deployment Check
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+      - '.github/workflows/backend-check.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+
+jobs:
+  validate-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Generate Certificates
+        run: |
+          cd backend/three-gate-login
+          chmod +x scripts/gen-certs.sh
+          ./scripts/gen-certs.sh
+
+      - name: Build and Start Services
+        run: |
+          docker-compose -f infrastructure/docker-compose.yml up -d --build
+
+      - name: Wait for services to be ready
+        run: sleep 20
+
+      - name: Check Container Status
+        run: |
+          docker ps
+          docker-compose -f infrastructure/docker-compose.yml logs gate2-app
+          docker-compose -f infrastructure/docker-compose.yml logs gate2-proxy
+
+      - name: Verify Health Endpoint
+        run: |
+          # The Go app is internal, we check if it's reachable via Docker logs or local port if exposed
+          # For a real check, we can use curl on the healthy endpoint if we expose it
+          # Since mTLS is required for the proxy, we'll verify the proxy is up and the app container is running
+          if [ $(docker inspect -f '{{.State.Running}}' gate2-app) != "true" ]; then
+            echo "gate2-app is not running"
+            exit 1
+          fi
+          if [ $(docker inspect -f '{{.State.Running}}' gate2-proxy) != "true" ]; then
+            echo "gate2-proxy is not running"
+            exit 1
+          fi
+
+      - name: Stop Services
+        if: always()
+        run: docker-compose -f infrastructure/docker-compose.yml down
