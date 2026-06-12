@@ -53,7 +53,7 @@ jobs:
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO \
             ONLY_ACTIVE_ARCH=YES \
-            IPHONEOS_DEPLOYMENT_TARGET="16.0" \
+            IPHONEOS_DEPLOYMENT_TARGET="17.0" \
             OTHER_LDFLAGS='$(inherited)' \
             FRAMEWORK_SEARCH_PATHS='"$(SRCROOT)/../shared/build/xcode-frameworks"' \
             build
