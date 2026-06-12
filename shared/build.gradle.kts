@@ -16,6 +16,9 @@ kotlin {
             baseName = "Shared"
             isStatic = false
             freeCompilerArgs += listOf("-Xbinary=bundleId=org.example.shield.shared")
+            
+            val platform = if (iosTarget.name == "iosSimulatorArm64") "ios-simulator" else "ios"
+            freeCompilerArgs += listOf("-Xlinker", "-platform_version", "-Xlinker", platform, "-Xlinker", "18.0", "-Xlinker", "18.2")
         }
     }
 
