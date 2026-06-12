@@ -15,6 +15,7 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = false
+            freeCompilerArgs += listOf("-Xbinary=bundleId=org.example.shield.shared")
         }
     }
 
