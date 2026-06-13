@@ -1,0 +1,20 @@
+# Binaries
+gate1
+
+# Generated certs (never commit private keys)
+certs/gate1/private.pem
+certs/gate1/*.key
+certs/
+
+# Service account credentials (Google API)
+*.json
+service-account*.json
+
+# Go build cache
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
