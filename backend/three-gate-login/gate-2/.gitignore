@@ -12,12 +12,12 @@
 *.out
 coverage.out
 
-# Certificates and Keys
-# DO NOT commit private keys to the repository
+# Certificates and Keys — NEVER commit private keys
 certs/dev/*.key
 certs/dev/*.csr
-# Future production certs should also be ignored
-# certs/prod/
+certs/gate2/private.pem
+certs/gate2/*.key
+certs/gate1/private.pem   # if ever present locally
 
 # Environment variables
 .env
