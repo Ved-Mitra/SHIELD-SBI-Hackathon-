@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Gate 2: mTLS Authenticator & Token Issuer
+  gate2-app:
+    build:
+      context: ../backend/three-gate-login
+      dockerfile: Dockerfile
+    container_name: gate2-app
+    environment:
+      - GATE2_ADDR=:8080
+      - GATE2_JWT_SECRET=${GATE2_JWT_SECRET:-dev-secret-change}
+    networks:
+      - shield-network
+
+  gate2-proxy:
+    image: envoyproxy/envoy:v1.30-latest
+    container_name: gate2-proxy
+    volumes:
+      - ../backend/three-gate-login/deploy/envoy/envoy-docker.yaml:/etc/envoy/envoy.yaml:ro
+      - ../backend/three-gate-login/certs/dev:/etc/envoy/certs:ro
+    ports:
+      - "8443:8443"
+      - "9901:9901"
+    depends_on:
+      - gate2-app
+    networks:
+      - shield-network
+
+  # Layer 3/4: Data & Intelligence
+  db:
+    image: postgres:15-alpine
+    container_name: shield-db
+    environment:
+      - POSTGRES_USER=shield
+      - POSTGRES_PASSWORD=shield-pass
+      - POSTGRES_DB=intel_db
+    volumes:
+      - shield-db-data:/var/lib/postgresql/data
+    networks:
+      - shield-network
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    networks:
+      - shield-network
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    networks:
+      - shield-network
+
+  dashboard:
+    image: grafana/grafana:latest
+    container_name: shield-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - shield-network
+
+networks:
+  shield-network:
+    driver: bridge
+
+volumes:
+  shield-db-data:
