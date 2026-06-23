@@ -41,6 +41,7 @@ kotlin {
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
+            implementation("com.google.android.play:integrity:1.3.0") // Real Gate-1 Attestation
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

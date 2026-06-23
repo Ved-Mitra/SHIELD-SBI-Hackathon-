@@ -27,7 +27,9 @@ class ThreeGateLoginManager {
             return@flow
         }
         
-        val g1Result = gateClient.getGate1Token(attestationResult.token, "client_generated_nonce_123")
+        // Generate a 32-character secure random hex nonce to prevent replay attacks
+        val secureNonce = (1..32).map { "0123456789abcdef"[kotlin.random.Random.nextInt(16)] }.joinToString("")
+        val g1Result = gateClient.getGate1Token(attestationResult.token, secureNonce)
         if (g1Result.isFailure) {
             emit(LoginState.Error(g1Result.exceptionOrNull()?.message ?: "Gate 1 Network Failed"))
             return@flow
