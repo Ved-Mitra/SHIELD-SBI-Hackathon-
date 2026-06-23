@@ -1,15 +1,72 @@
 version: '3.8'
 
 services:
-  # Gate 2: mTLS Authenticator & Token Issuer
+  # ----------------------------------------
+  # Shared Data Infrastructure
+  # ----------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: shield-db
+    environment:
+      - POSTGRES_USER=shield
+      - POSTGRES_PASSWORD=shield-pass
+      - POSTGRES_DB=intel_db
+    volumes:
+      - shield-db-data:/var/lib/postgresql/data
+      - ../backend/three-gate-login/gate-3/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - shield-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: shield-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Gate 1: App Authenticity
+  # ----------------------------------------
+  gate1-app:
+    build:
+      context: ../backend/three-gate-login/gate-1
+      dockerfile: Dockerfile
+    container_name: gate1-app
+    environment:
+      - GATE1_ADDR=:8081
+      - GATE1_REDIS_ADDR=shield-redis:6379
+      - GATE1_MOCK_ATTESTATION=true
+      - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
+    volumes:
+      - ../backend/three-gate-login/certs:/app/certs:ro
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Gate 2: Channel Authenticity (mTLS)
+  # ----------------------------------------
   gate2-app:
     build:
-      context: ../backend/three-gate-login
+      context: ../backend/three-gate-login/gate-2
       dockerfile: Dockerfile
     container_name: gate2-app
     environment:
       - GATE2_ADDR=:8080
-      - GATE2_JWT_SECRET=${GATE2_JWT_SECRET:-dev-secret-change}
+      - GATE2_JWT_PRIVATE_KEY_PATH=/app/certs/gate2/private.pem
+      - GATE2_GATE1_PUBLIC_KEY_PATH=/app/certs/gate1/public.pem
+      - GATE2_MOCK_GATE1=false
+      - GATE2_MOCK_CLIENT_DN=false
+    volumes:
+      - ../backend/three-gate-login/certs:/app/certs:ro
+    depends_on:
+      - gate1-app
     networks:
       - shield-network
 
@@ -27,19 +84,35 @@ services:
     networks:
       - shield-network
 
-  # Layer 3/4: Data & Intelligence
-  db:
-    image: postgres:15-alpine
-    container_name: shield-db
+  # ----------------------------------------
+  # Gate 3: User Authenticity (FIDO2)
+  # ----------------------------------------
+  gate3-app:
+    build:
+      context: ../backend/three-gate-login/gate-3
+      dockerfile: Dockerfile
+    container_name: gate3-app
     environment:
-      - POSTGRES_USER=shield
-      - POSTGRES_PASSWORD=shield-pass
-      - POSTGRES_DB=intel_db
+      - GATE3_ADDR=:8082
+      - GATE3_GATE2_PUBLIC_KEY_PATH=/root/certs/gate2/public.pem
+      - GATE3_REDIS_ADDR=shield-redis:6379
+      - GATE3_DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
+      - GATE3_MOCK_GATE2=false
     volumes:
-      - shield-db-data:/var/lib/postgresql/data
+      - ../backend/three-gate-login/certs:/root/certs:ro
+    ports:
+      - "8082:8082"
+    depends_on:
+      - db
+      - redis
+      - gate2-app
     networks:
       - shield-network
 
+  # ----------------------------------------
+  # Layer 3/4: Analytics (Existing)
+  # ----------------------------------------
   zookeeper:
     image: bitnami/zookeeper:latest
     container_name: zookeeper
