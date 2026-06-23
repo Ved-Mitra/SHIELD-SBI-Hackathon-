@@ -11,7 +11,7 @@ actual class AppAttestation actual constructor() {
             // val integrityManager = IntegrityManagerFactory.create(context)
             // val request = IntegrityTokenRequest.builder().setNonce("nonce").build()
             // val token = integrityManager.requestIntegrityToken(request).await()
-            AttestationResult.Success
+            AttestationResult.Success("mock_play_integrity_token_for_hackathon")
         } catch (e: Exception) {
             AttestationResult.Failure(e.message ?: "Play Integrity Exception - Gate 1")
         }

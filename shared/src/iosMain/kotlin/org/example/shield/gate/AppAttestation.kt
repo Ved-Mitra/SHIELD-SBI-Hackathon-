@@ -10,10 +10,9 @@ actual class AppAttestation actual constructor() {
             delay(500) // Mocking network/hardware call
             // val service = DCAppAttestService.shared
             // if (service.isSupported) { ... }
-            AttestationResult.Success
+            AttestationResult.Success("mock_apple_app_attest_token")
         } catch (e: Exception) {
             AttestationResult.Failure(e.message ?: "App Attest Exception - Gate 1")
         }
     }
 }
-

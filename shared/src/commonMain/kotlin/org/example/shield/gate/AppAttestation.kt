@@ -5,7 +5,7 @@ expect class AppAttestation() {
 }
 
 sealed class AttestationResult {
-    object Success: AttestationResult()
+    data class Success(val token: String): AttestationResult()
     data class Failure(val error: String): AttestationResult()
 }
 
