@@ -3,7 +3,7 @@ package org.example.shield.gate
 import kotlinx.coroutines.delay
 
 actual class AppAttestation actual constructor() {
-    actual suspend fun verifyAppIntegrity(): AttestationResult {
+    actual suspend fun verifyAppIntegrity(nonce: String): AttestationResult {
         // Implementation for Apple App Attest mapping
         // We simulate the hardware attestation abstraction for the demo
         return try {

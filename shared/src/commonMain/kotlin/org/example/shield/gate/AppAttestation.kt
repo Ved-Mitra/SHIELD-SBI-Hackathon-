@@ -1,7 +1,7 @@
 package org.example.shield.gate
 
 expect class AppAttestation() {
-    suspend fun verifyAppIntegrity(): AttestationResult
+    suspend fun verifyAppIntegrity(nonce: String): AttestationResult
 }
 
 sealed class AttestationResult {

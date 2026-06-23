@@ -9,15 +9,9 @@ import java.net.URL
 
 actual class GateClient actual constructor() {
 
-    // Using 10.0.2.2 to access localhost from Android Emulator
-    private val GATE1_URL = "http://10.0.2.2:8081/gate1/attest"
-    private val GATE2_URL = "http://10.0.2.2:8080/gate2/token"
-    private val GATE3_BEGIN_URL = "http://10.0.2.2:8082/gate3/authenticate/begin"
-    private val GATE3_FINISH_URL = "http://10.0.2.2:8082/gate3/authenticate/finish"
-
     actual suspend fun getGate1Token(integrityToken: String, nonce: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val url = URL(GATE1_URL)
+            val url = URL(Constants.GATE1_URL)
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
@@ -46,7 +40,7 @@ actual class GateClient actual constructor() {
 
     actual suspend fun getGate2Token(gate1Token: String): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val url = URL(GATE2_URL)
+            val url = URL(Constants.GATE2_URL)
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "POST"
             // mTLS requires an SSLSocketFactory injected here, bypassed for prototype HTTP fallback
@@ -68,7 +62,7 @@ actual class GateClient actual constructor() {
     actual suspend fun authenticateGate3(gate2Token: String, username: String): Result<String> = withContext(Dispatchers.IO) {
         try {
             // Step 1: Begin
-            val beginUrl = URL(GATE3_BEGIN_URL)
+            val beginUrl = URL(Constants.GATE3_BEGIN_URL)
             val beginConn = beginUrl.openConnection() as HttpURLConnection
             beginConn.requestMethod = "POST"
             beginConn.setRequestProperty("Authorization", "Bearer $gate2Token")
@@ -89,7 +83,7 @@ actual class GateClient actual constructor() {
             kotlinx.coroutines.delay(1500)
 
             // Step 2: Finish
-            val finishUrl = URL("$GATE3_FINISH_URL?username=$username")
+            val finishUrl = URL("${Constants.GATE3_FINISH_URL}?username=$username")
             val finishConn = finishUrl.openConnection() as HttpURLConnection
             finishConn.requestMethod = "POST"
             finishConn.setRequestProperty("Content-Type", "application/json")
