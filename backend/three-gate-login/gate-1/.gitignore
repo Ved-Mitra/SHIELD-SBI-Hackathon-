@@ -1,7 +1,7 @@
 # Binaries
 gate1
 
-# Generated certs (never commit private keys)
+# Generated certs
 certs/gate1/private.pem
 certs/gate1/*.key
 certs/

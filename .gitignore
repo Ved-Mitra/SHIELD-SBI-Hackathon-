@@ -3,3 +3,14 @@
 .kotlin
 shared
 local.properties
+.aiexclude
+three-gate-login-service-account.json
+
+# Block specific private key files
+*.pem
+*.key
+*.json
+
+# Block entire sensitive directories
+secrets/
+.env
