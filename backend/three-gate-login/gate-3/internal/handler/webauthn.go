@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -10,10 +11,16 @@ import (
 	"shield/gate3/internal/store"
 )
 
+type SessionStore interface {
+	Save(ctx context.Context, key string, data *webauthn.SessionData) error
+	Load(ctx context.Context, key string) (*webauthn.SessionData, error)
+	Delete(ctx context.Context, key string)
+}
+
 type WebAuthnHandler struct {
 	WebAuthn  *webauthn.WebAuthn
-	Sessions  *store.MemorySessionStore
-	UserStore *store.InMemoryUserStore
+	Sessions  SessionStore
+	UserStore store.UserStore
 }
 
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {

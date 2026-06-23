@@ -19,8 +19,23 @@ func New(cfg config.Config) (http.Handler, error) {
 		return nil, err
 	}
 
-	sessions := store.NewMemorySessionStore()
-	userStore := store.NewInMemoryUserStore()
+	var sessions handler.SessionStore
+	if cfg.RedisAddr != "" {
+		sessions = store.NewRedisSessionStore(cfg.RedisAddr)
+	} else {
+		sessions = store.NewMemorySessionStore()
+	}
+
+	var userStore store.UserStore
+	if cfg.DatabaseDSN != "" {
+		pgStore, err := store.NewPostgresUserStore(cfg.DatabaseDSN)
+		if err != nil {
+			return nil, err
+		}
+		userStore = pgStore
+	} else {
+		userStore = store.NewInMemoryUserStore()
+	}
 
 	webAuthnHandler := &handler.WebAuthnHandler{
 		WebAuthn:  wa,

@@ -16,6 +16,7 @@ type Config struct {
 	Addr           string
 	Gate2PublicKey *rsa.PublicKey
 	RedisAddr      string
+	DatabaseDSN    string
 	MockGate2      bool
 
 	WebAuthn *webauthn.Config
@@ -52,6 +53,7 @@ func Load() Config {
 		Addr:           getEnv("GATE3_ADDR", ":8082"),
 		Gate2PublicKey: gate2PubKey,
 		RedisAddr:      getEnv("GATE3_REDIS_ADDR", "localhost:6379"),
+		DatabaseDSN:    getEnv("GATE3_DB_DSN", ""),
 		MockGate2:      mockGate2,
 		WebAuthn:       wconfig,
 	}
