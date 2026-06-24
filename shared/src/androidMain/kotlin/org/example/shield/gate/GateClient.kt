@@ -2,10 +2,17 @@ package org.example.shield.gate
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.example.shield.AndroidContextProvider
 import org.json.JSONObject
+import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.KeyStore
+import javax.net.ssl.HttpsURLConnection
+import javax.net.ssl.KeyManagerFactory
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManagerFactory
 
 actual class GateClient actual constructor() {
 
@@ -41,9 +48,38 @@ actual class GateClient actual constructor() {
     actual suspend fun getGate2Token(gate1Token: String): Result<String> = withContext(Dispatchers.IO) {
         try {
             val url = URL(Constants.GATE2_URL)
-            val conn = url.openConnection() as HttpURLConnection
+            val conn = url.openConnection() as HttpsURLConnection
             conn.requestMethod = "POST"
-            // mTLS requires an SSLSocketFactory injected here, bypassed for prototype HTTP fallback
+            
+            // ── Real mTLS Configuration ──
+            // Load the PKCS12 client certificate from Android res/raw
+            // The developer must place their client.p12 file in androidApp/src/main/res/raw/client.p12
+            val context = AndroidContextProvider.context
+            val resId = context.resources.getIdentifier("client", "raw", context.packageName)
+            if (resId != 0) {
+                val keyStore = KeyStore.getInstance("PKCS12")
+                context.resources.openRawResource(resId).use { inputStream ->
+                    keyStore.load(inputStream, "password".toCharArray()) // Replace "password" with real p12 password
+                }
+                
+                val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+                keyManagerFactory.init(keyStore, "password".toCharArray())
+                
+                // For hackathon local dev, we trust all server certs because Envoy uses self-signed certs
+                val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(object : javax.net.ssl.X509TrustManager {
+                    override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate>? = arrayOf()
+                    override fun checkClientTrusted(certs: Array<java.security.cert.X509Certificate>, authType: String) {}
+                    override fun checkServerTrusted(certs: Array<java.security.cert.X509Certificate>, authType: String) {}
+                })
+                
+                val sslContext = SSLContext.getInstance("TLS")
+                sslContext.init(keyManagerFactory.keyManagers, trustAllCerts, java.security.SecureRandom())
+                conn.sslSocketFactory = sslContext.socketFactory
+                conn.hostnameVerifier = javax.net.ssl.HostnameVerifier { _, _ -> true }
+            } else {
+                throw Exception("mTLS client.p12 certificate not found in res/raw")
+            }
+            
             conn.setRequestProperty("Authorization", "Bearer $gate1Token")
             
             if (conn.responseCode == 200) {
