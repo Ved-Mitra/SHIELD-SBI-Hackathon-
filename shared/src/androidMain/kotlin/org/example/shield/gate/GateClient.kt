@@ -112,11 +112,13 @@ actual class GateClient actual constructor() {
                 return@withContext Result.failure(Exception("Gate 3 Begin failed: ${beginConn.responseCode}"))
             }
 
-            // In a real app, we pass the beginConn response to Android CredentialManager API here
-            // to prompt FaceID/Fingerprint and generate the signed assertion.
-
-            // Simulate hardware biometric prompt delay
-            kotlinx.coroutines.delay(1500)
+            // In a real FIDO2 app, we pass the beginConn response to Android CredentialManager API here.
+            // For the hackathon demonstration, we trigger the system biometric/PIN prompt
+            // to show the user interaction, then send a mock signed assertion.
+            val biometricSuccess = BiometricHelper.promptBiometric()
+            if (!biometricSuccess) {
+                return@withContext Result.failure(Exception("Biometric Authentication Cancelled or Failed"))
+            }
 
             // Step 2: Finish
             val finishUrl = URL("${Constants.GATE3_FINISH_URL}?username=$username")

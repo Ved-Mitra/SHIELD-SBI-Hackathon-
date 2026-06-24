@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation("com.google.android.play:integrity:1.3.0") // Real Gate-1 Attestation
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3") // For .await() on Google Tasks
+            implementation("androidx.biometric:biometric:1.1.0") // For Biometric/PIN Prompt
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

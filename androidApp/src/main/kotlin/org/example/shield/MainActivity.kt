@@ -1,18 +1,19 @@
 package org.example.shield
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
-        AndroidContextProvider.context = applicationContext
+        // Provide the Activity context for BiometricPrompt
+        AndroidContextProvider.context = this
 
         setContent {
             App()
