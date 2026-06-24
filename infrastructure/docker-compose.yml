@@ -39,11 +39,11 @@ services:
       - GATE1_ADDR=:8081
       - GATE1_REDIS_ADDR=shield-redis:6379
       - GATE1_MOCK_ATTESTATION=false
-      - GATE1_SERVICE_ACCOUNT_PATH=/app/secrets/google-services.json
+      - GATE1_SERVICE_ACCOUNT_PATH=/app/secret/three-gate-login-service-account.json
       - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
     volumes:
       - ../backend/three-gate-login/certs:/app/certs:ro
-      - ../backend/three-gate-login/secrets:/app/secrets:ro
+      - ../backend/three-gate-login/secret:/app/secret:ro
     ports:
       - "8081:8081"
     depends_on:
