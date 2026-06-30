@@ -40,11 +40,11 @@ services:
       - GATE1_ADDR=:8081
       - GATE1_REDIS_ADDR=shield-redis:6379
       - GATE1_MOCK_ATTESTATION=false
-      - GATE1_SERVICE_ACCOUNT_PATH=/app/secret/three-gate-login-service-account.json
+      - GATE1_SERVICE_ACCOUNT_PATH=/app/secrets/three-gate-login-service-account.json
       - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
     volumes:
-      - ../backend/three-gate-login/certs:/app/certs:ro
-      - ../backend/three-gate-login/secret:/app/secret:ro
+      - ../backend/three-gate-login/gate-1/certs:/app/certs:ro
+      - ../backend/three-gate-login/secrets:/app/secrets:ro
     ports:
       - "8081:8081"
     depends_on:
@@ -67,7 +67,7 @@ services:
       - GATE2_MOCK_GATE1=false
       - GATE2_MOCK_CLIENT_DN=false
     volumes:
-      - ../backend/three-gate-login/certs:/app/certs:ro
+      - ../backend/three-gate-login/gate-2/certs:/app/certs:ro
     depends_on:
       - gate1-app
     networks:
@@ -77,8 +77,8 @@ services:
     image: envoyproxy/envoy:v1.30-latest
     container_name: gate2-proxy
     volumes:
-      - ../backend/three-gate-login/deploy/envoy/envoy-docker.yaml:/etc/envoy/envoy.yaml:ro
-      - ../backend/three-gate-login/certs/dev:/etc/envoy/certs:ro
+      - ../backend/three-gate-login/gate-2/deploy/envoy/envoy-docker.yaml:/etc/envoy/envoy.yaml:ro
+      - ../backend/three-gate-login/gate-2/certs/dev:/etc/envoy/certs:ro
     ports:
       - "8443:8443"
       - "9901:9901"
@@ -103,7 +103,7 @@ services:
       - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
       - GATE3_MOCK_GATE2=false
     volumes:
-      - ../backend/three-gate-login/certs:/root/certs:ro
+      - ../backend/three-gate-login/gate-3/certs:/root/certs:ro
     ports:
       - "8082:8082"
     depends_on:
