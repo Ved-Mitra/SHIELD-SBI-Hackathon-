@@ -30,6 +30,10 @@ static_resources:
                   virtual_hosts:
                     - name: gate2_service
                       domains: ["*"]
+                      request_headers_to_add:
+                        - header:
+                            key: x-client-dn
+                            value: "%DOWNSTREAM_PEER_SUBJECT%"
                       routes:
                         - match:
                             prefix: "/"
@@ -42,10 +46,6 @@ static_resources:
                   subject: true
                   uri: true
                   dns: true
-                request_headers_to_add:
-                  - header:
-                      key: x-client-dn
-                      value: "%DOWNSTREAM_PEER_SUBJECT%"
   clusters:
     - name: gate2_app
       connect_timeout: 1s
