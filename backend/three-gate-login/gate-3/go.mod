@@ -1,6 +1,6 @@
 module shield/gate3
 
-go 1.22
+go 1.26.3
 
 require (
 	github.com/go-webauthn/webauthn v0.17.4
