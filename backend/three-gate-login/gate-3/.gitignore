@@ -1,0 +1,19 @@
+# Binaries
+/gate3
+
+# Generated certs (ignore private keys, keep public)
+certs/gate3/private.pem
+certs/gate3/*.key
+
+# Service account credentials
+*.json
+service-account*.json
+
+# Go build cache
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
