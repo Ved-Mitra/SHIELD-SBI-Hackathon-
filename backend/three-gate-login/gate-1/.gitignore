@@ -1,5 +1,5 @@
 # Binaries
-gate1
+/gate1
 
 # Generated certs
 certs/gate1/private.pem
