@@ -40,8 +40,7 @@ actual class GateClient actual constructor() {
                 Result.failure(Exception("Gate 1 failed with code ${conn.responseCode}"))
             }
         } catch (e: Exception) {
-            // Fallback for prototype testing without backend running
-            Result.success("mock_g1_jwt_token")
+            Result.failure(e)
         }
     }
 
@@ -90,8 +89,7 @@ actual class GateClient actual constructor() {
                 Result.failure(Exception("Gate 2 failed with code ${conn.responseCode}"))
             }
         } catch (e: Exception) {
-            // Fallback for prototype testing without backend running
-            Result.success("mock_g2_jwt_token")
+            Result.failure(e)
         }
     }
 
@@ -142,8 +140,7 @@ actual class GateClient actual constructor() {
                 Result.failure(Exception("Gate 3 Finish failed: ${finishConn.responseCode}"))
             }
         } catch (e: Exception) {
-            // Fallback for prototype testing
-            Result.success("mock_final_banking_session_token")
+            Result.failure(e)
         }
     }
 }

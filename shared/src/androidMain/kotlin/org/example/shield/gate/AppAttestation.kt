@@ -17,8 +17,7 @@ actual class AppAttestation actual constructor() {
             val tokenResponse = integrityManager.requestIntegrityToken(request).await()
             AttestationResult.Success(tokenResponse.token())
         } catch (e: Exception) {
-            // Fallback for prototype testing if Play Store is not available on emulator
-            AttestationResult.Success("mock_play_integrity_token_for_hackathon")
+            AttestationResult.Failure(e.message ?: "Play Integrity API failed")
         }
     }
 }
