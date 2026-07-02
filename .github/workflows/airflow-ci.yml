@@ -1,0 +1,67 @@
+name: Airflow DAG CI
+
+on:
+  push:
+    paths:
+      - 'backend/airflow-takedown-DAG/**'
+      - 'infrastructure/DAG/docker-compose.yml'
+  pull_request:
+    paths:
+      - 'backend/airflow-takedown-DAG/**'
+      - 'infrastructure/DAG/docker-compose.yml'
+
+jobs:
+  validate-dags:
+    name: Validate Python DAG Integrity
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          cd backend/airflow-takedown-DAG
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Airflow DagBag Check
+        run: |
+          # This script tells the Airflow engine to parse our Python DAG file.
+          # It guarantees there are no Python syntax errors or cyclic dependencies before we merge!
+          python -c "
+          import os
+          from airflow.models import DagBag
+          
+          # Set up dummy environment variables so the DAG doesn't crash trying to read configs
+          os.environ['AIRFLOW_HOME'] = os.getcwd()
+          
+          # Parse the DAGs folder
+          dag_bag = DagBag(dag_folder='backend/airflow-takedown-DAG/dags', include_examples=False)
+          
+          if len(dag_bag.import_errors) > 0:
+              print('❌ DAG import errors found:')
+              for filepath, error in dag_bag.import_errors.items():
+                  print(f'File: {filepath}')
+                  print(f'Error: {error}')
+              exit(1)
+          
+          print('✅ All DAGs parsed successfully! Zero syntax errors.')
+          "
+
+  build-docker:
+    name: Test Docker Image Build
+    runs-on: ubuntu-latest
+    needs: validate-dags
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Airflow Image
+        run: |
+          cd backend/airflow-takedown-DAG
+          docker build -t shield-airflow:ci-test .
