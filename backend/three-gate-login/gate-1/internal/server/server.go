@@ -11,6 +11,7 @@ import (
 
 	"shield/gate1/internal/config"
 	"shield/gate1/internal/handler"
+	"shield/gate1/internal/kafka"
 	"shield/gate1/internal/middleware"
 	"shield/gate1/internal/nonce"
 )
@@ -24,6 +25,9 @@ import (
 //   GET  /healthz        — liveness probe (no rate limit)
 //   POST /gate1/attest   — platform attestation endpoint
 func New(cfg config.Config) (http.Handler, error) {
+	//initialize kafka producer
+	kafka.InitProducer(cfg.KafkaBrokerUrl);
+
 	// ── Nonce store ───────────────────────────────────────────────────────────
 	ns := nonce.NewRedisStore(cfg.NonceStoreDSN, cfg.NonceTTL)
 

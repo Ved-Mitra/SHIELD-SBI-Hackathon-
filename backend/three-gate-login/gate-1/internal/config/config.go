@@ -42,6 +42,9 @@ type Config struct {
 	// MockAttestation skips real Play Integrity / App Attest verification.
 	// MUST NOT be set to true in production. Prints a loud warning at startup.
 	MockAttestation bool
+
+	// kafka broker url
+	KafkaBrokerUrl string
 }
 
 // Load reads configuration from environment variables and returns a validated Config.
@@ -62,6 +65,7 @@ func Load() Config {
 		NonceStoreDSN:      getEnv("GATE1_NONCE_STORE_ADDR", "localhost:6379"),
 		NonceTTL:           getDuration("GATE1_NONCE_TTL", 5*time.Minute),
 		MockAttestation:    getBool("GATE1_MOCK_ATTESTATION"),
+		KafkaBrokerUrl: 	getEnv("KAFKA_BROKER_URL","localhost:9092"),
 	}
 }
 

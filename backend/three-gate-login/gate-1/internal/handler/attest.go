@@ -8,6 +8,7 @@
 package handler
 
 import (
+	"fmt"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"shield/gate1/internal/config"
 	"shield/gate1/internal/integrity"
 	"shield/gate1/internal/jwt"
+	"shield/gate1/internal/kafka"
 	"shield/gate1/internal/model"
 	"shield/gate1/internal/nonce"
 )
@@ -83,6 +85,7 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.nonceStore.Consume(r.Context(), req.Nonce) {
 		log.Printf("[WARN] replayed or invalid nonce %q from %s", req.Nonce, r.RemoteAddr)
 		writeError(w, http.StatusUnauthorized, "invalid or replayed nonce")
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "123", Gate: 1, Status: "FAILED", Reason: "Nonce was replayed or invalid"})
 		return
 	}
 
@@ -106,8 +109,11 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR] attestation failed platform=%s nonce=%s: %v",
 				req.Platform, req.Nonce, verifyErr)
 			writeError(w, http.StatusUnauthorized, "attestation verification failed")
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "123", Gate: 1, Status: "FAILED", Reason: fmt.Sprintf("Attest failed on platform %s", req.Platform)})
 			return
 		}
+
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "123", Gate: 1, Status: "PASSED", Reason:"Gate-1 verified"})
 	}
 
 	// ── Issue G1-JWT ──────────────────────────────────────────────────────────
