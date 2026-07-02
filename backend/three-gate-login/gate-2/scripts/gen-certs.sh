@@ -25,5 +25,6 @@ openssl req -new -key "${CERT_DIR}/client.key" \
 openssl x509 -req -in "${CERT_DIR}/client.csr" -CA "${CERT_DIR}/ca.crt" -CAkey "${CERT_DIR}/ca.key" \
   -CAcreateserial -out "${CERT_DIR}/client.crt" -days 365 -sha256
 
+chmod 644 "${CERT_DIR}"/*
 echo "Generated certs in ${CERT_DIR}"
 
