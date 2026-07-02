@@ -67,6 +67,7 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req model.AttestRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 32*1024)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED",  Reason: "in valid request body"})
 		return
 	}
 
