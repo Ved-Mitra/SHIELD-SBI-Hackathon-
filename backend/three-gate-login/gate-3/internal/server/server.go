@@ -9,11 +9,15 @@ import (
 
 	"shield/gate3/internal/config"
 	"shield/gate3/internal/handler"
+	"shield/gate3/internal/kafka"
 	"shield/gate3/internal/middleware"
 	"shield/gate3/internal/store"
 )
 
 func New(cfg config.Config) (http.Handler, error) {
+	// initialize kafka producer
+	kafka.InitProducer(cfg.KafkaBrokerUrl)
+
 	wa, err := webauthn.New(cfg.WebAuthn)
 	if err != nil {
 		return nil, err

@@ -5,10 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/go-webauthn/webauthn/webauthn"
+	"shield/gate3/internal/kafka"
 	"shield/gate3/internal/store"
+
+	"github.com/go-webauthn/webauthn/webauthn"
 )
 
 type SessionStore interface {
@@ -47,6 +50,7 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 	creation, sessionData, err := h.WebAuthn.BeginRegistration(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError)})
 		return
 	}
 
@@ -72,14 +76,18 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	sessionData, err := h.Sessions.Load(r.Context(), "reg:"+username)
 	if err != nil {
 		http.Error(w, "session expired", http.StatusBadRequest)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username,Gate: 3,Status: "FAILED", Reason: "session expired"})
 		return
 	}
 
 	credential, err := h.WebAuthn.FinishRegistration(user, *sessionData, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
 		return
 	}
+
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Registration finished"})
 
 	h.UserStore.AddCredential(r.Context(), username, credential)
 	h.Sessions.Delete(r.Context(), "reg:"+username)
@@ -112,6 +120,7 @@ func (h *WebAuthnHandler) AuthBegin(w http.ResponseWriter, r *http.Request) {
 	assertion, sessionData, err := h.WebAuthn.BeginLogin(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError)})
 		return
 	}
 
@@ -137,17 +146,21 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 	sessionData, err := h.Sessions.Load(r.Context(), "auth:"+username)
 	if err != nil {
 		http.Error(w, "session expired", http.StatusBadRequest)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username,Gate: 3,Status: "FAILED", Reason: "session expired"})
 		return
 	}
 
 	credential, err := h.WebAuthn.FinishLogin(user, *sessionData, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
 		return
 	}
 
 	h.UserStore.UpdateCounter(r.Context(), username, credential.ID, credential.Authenticator.SignCount)
 	h.Sessions.Delete(r.Context(), "auth:"+username)
+
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Authentication finished"})
 
 	// Issue opaque session token
 	b := make([]byte, 32)
