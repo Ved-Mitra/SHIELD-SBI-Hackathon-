@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"shield/gate1/internal/config"
+	"shield/gate1/internal/kafka"
 	"shield/gate1/internal/server"
 )
 
@@ -23,6 +24,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("[FATAL] server init: %v", err)
 	}
+
+	defer kafka.CloseProducer()
 
 	srv := server.DefaultServer(cfg.Addr, h)
 

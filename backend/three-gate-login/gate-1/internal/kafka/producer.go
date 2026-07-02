@@ -27,3 +27,10 @@ func PublishEvent(event AuthEvent) error{
 	payload, _ :=json.Marshal(event);
 	return writer.WriteMessages(context.Background(),kafka.Message{Value: payload});
 }
+
+func CloseProducer() error{
+	if writer!=nil{
+		return writer.Close()
+	}
+	return nil
+}
