@@ -21,10 +21,15 @@ func NewPostgresUserStore(dsn string) (*PostgresUserStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := db.Ping(); err != nil {
-		return nil, err
+
+	for i := 0; i < 5; i++ {
+		err = db.Ping()
+		if err == nil {
+			return &PostgresUserStore{db: db}, nil
+		}
+		time.Sleep(2 * time.Second)
 	}
-	return &PostgresUserStore{db: db}, nil
+	return nil, fmt.Errorf("database connection failed after retries: %v", err)
 }
 
 func (s *PostgresUserStore) GetOrCreate(ctx context.Context, username, displayName string) (*User, error) {
