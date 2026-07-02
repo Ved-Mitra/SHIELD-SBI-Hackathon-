@@ -41,6 +41,7 @@ services:
       - GATE1_MOCK_ATTESTATION=false
       - GATE1_SERVICE_ACCOUNT_PATH=/app/secrets/three-gate-login-service-account.json
       - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
+      - KAFKA_BROKER_URL=kafka:9092
     volumes:
       - ../backend/three-gate-login/gate-1/certs:/app/certs:ro
       - ../backend/three-gate-login/secrets:/app/secrets:ro
@@ -48,6 +49,7 @@ services:
       - "8081:8081"
     depends_on:
       - redis
+      - kafka
     networks:
       - shield-network
 
@@ -65,10 +67,13 @@ services:
       - GATE2_GATE1_PUBLIC_KEY_PATH=/app/certs/gate1/public.pem
       - GATE2_MOCK_GATE1=false
       - GATE2_MOCK_CLIENT_DN=false
+      - KAFKA_BROKER_URL=kafka:9092
+
     volumes:
       - ../backend/three-gate-login/gate-2/certs:/app/certs:ro
     depends_on:
       - gate1-app
+      - kafka
     networks:
       - shield-network
 
@@ -101,6 +106,7 @@ services:
       - GATE3_DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
       - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
       - GATE3_MOCK_GATE2=false
+      - KAFKA_BROKER_URL=kafka:9092
     volumes:
       - ../backend/three-gate-login/gate-3/certs:/root/certs:ro
     ports:
@@ -109,6 +115,7 @@ services:
       - db
       - redis
       - gate2-app
+      - kafka
     networks:
       - shield-network
 
