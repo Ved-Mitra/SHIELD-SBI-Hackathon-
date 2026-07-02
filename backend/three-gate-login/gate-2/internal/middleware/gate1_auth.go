@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"shield/three-gate-login/internal/kafka"
 	"strings"
 
 	jwtlib "github.com/golang-jwt/jwt/v5"
@@ -46,6 +47,7 @@ func Gate1Auth(gate1PublicKey *rsa.PublicKey, next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			writeAuthError(w, "missing or malformed Authorization header")
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 2, Status: "FAILED", Reason: "Missing or malformed Authorization header"})
 			return
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
@@ -55,6 +57,7 @@ func Gate1Auth(gate1PublicKey *rsa.PublicKey, next http.Handler) http.Handler {
 			log.Printf("[WARN] Gate1Auth: invalid G1-JWT: %v (req_id=%s)",
 				err, r.Header.Get("X-Request-ID"))
 			writeAuthError(w, "invalid or expired G1-JWT")
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 2, Status: "FAILED", Reason: "INvalid or Expired G1-JWT"})
 			return
 		}
 

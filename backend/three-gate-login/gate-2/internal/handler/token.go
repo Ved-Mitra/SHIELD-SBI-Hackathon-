@@ -8,6 +8,7 @@ import (
 
 	"shield/three-gate-login/internal/config"
 	"shield/three-gate-login/internal/jwt"
+	"shield/three-gate-login/internal/kafka"
 	"shield/three-gate-login/internal/model"
 	"shield/three-gate-login/internal/mtls"
 )
@@ -38,6 +39,7 @@ func (h TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		_, _ = w.Write([]byte(`{"error":"mTLS client identity not found"}`))
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: clientID, Gate: 2,Status: "FAILED", Reason: "mTLS client identity not found"})
 		return
 	}
 
@@ -55,8 +57,11 @@ func (h TokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[ERROR] G2-JWT issuance failed: %v (req_id=%s)",
 			err, r.Header.Get("X-Request-ID"))
 		w.WriteHeader(http.StatusInternalServerError)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: clientID,Gate: 2,Status: "FAILED", Reason: "Internal Server Error issuing G2-JWT"})
 		return
 	}
+
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: clientID,Gate: 2, Status: "PASSED", Reason: "Gate-2 mTLS token verified"})
 
 	log.Printf("[INFO] G2-JWT issued: sub=%q exp=%s req_id=%s",
 		clientID, now.Add(h.Config.JWTTTL).Format(time.RFC3339),

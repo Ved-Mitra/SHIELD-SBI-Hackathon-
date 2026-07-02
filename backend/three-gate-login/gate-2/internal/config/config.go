@@ -29,6 +29,9 @@ type Config struct {
 
 	// MockGate1 skips G1-JWT verification (for local dev without Gate 1 running).
 	MockGate1 bool
+
+	// Kafka Broker URL
+	KafkaBrokerUrl string
 }
 
 // Load reads configuration from environment variables and returns a validated Config.
@@ -54,6 +57,7 @@ func Load() Config {
 		Gate1PublicKey: gate1PubKey,
 		ClientIDHeader: getEnv("GATE2_CLIENT_ID_HEADER", "x-client-dn"),
 		MockGate1:      mockGate1,
+		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL","localhost:9092"),
 	}
 }
 

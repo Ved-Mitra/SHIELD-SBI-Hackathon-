@@ -19,11 +19,15 @@ import (
 
 	"shield/three-gate-login/internal/config"
 	"shield/three-gate-login/internal/handler"
+	"shield/three-gate-login/internal/kafka"
 	"shield/three-gate-login/internal/middleware"
 )
 
 // New builds and returns the fully configured Gate 2 HTTP handler.
 func New(cfg config.Config) http.Handler {
+	// initialize kafka producer
+	kafka.InitProducer(cfg.KafkaBrokerUrl)
+	
 	// ── Rate limiter: ~20 req/min per IP, burst 20 ────────────────────────────
 	// /gate2/token is called once per login — low rate is fine for real traffic.
 	// Burst of 20 prevents smoke tests from self-rate-limiting.
