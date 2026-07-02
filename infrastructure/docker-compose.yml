@@ -11,10 +11,11 @@ services:
       - POSTGRES_PASSWORD=shield-pass
       - POSTGRES_DB=intel_db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U shield -d intel_db"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U shield -d intel_db"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
     volumes:
       - shield-db-data:/var/lib/postgresql/data
       - ../backend/user-database/schema.sql:/docker-entrypoint-initdb.d/0-user-schema.sql:ro
