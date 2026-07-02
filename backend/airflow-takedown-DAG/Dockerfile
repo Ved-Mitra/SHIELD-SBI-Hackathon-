@@ -1,0 +1,8 @@
+FROM apache/airflow:2.9.2
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY dags/ /opt/airflow/dags/
+COPY config/ /opt/airflow/config/
+COPY scripts/ /opt/airflow/scripts/
