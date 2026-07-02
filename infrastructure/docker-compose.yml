@@ -10,6 +10,11 @@ services:
       - POSTGRES_USER=shield
       - POSTGRES_PASSWORD=shield-pass
       - POSTGRES_DB=intel_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shield -d intel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - shield-db-data:/var/lib/postgresql/data
       - ../backend/user-database/schema.sql:/docker-entrypoint-initdb.d/0-user-schema.sql:ro
@@ -112,10 +117,14 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - db
-      - redis
-      - gate2-app
-      - kafka
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      gate2-app:
+        condition: service_started
+      kafka:
+        condition: service_started
     networks:
       - shield-network
 
