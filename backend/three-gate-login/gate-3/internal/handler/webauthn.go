@@ -70,6 +70,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	user, err := h.UserStore.Get(r.Context(), username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during RegisterFinish"})
 		return
 	}
 
@@ -114,6 +115,7 @@ func (h *WebAuthnHandler) AuthBegin(w http.ResponseWriter, r *http.Request) {
 	user, err := h.UserStore.Get(r.Context(), req.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during AuthBegin"})
 		return
 	}
 
