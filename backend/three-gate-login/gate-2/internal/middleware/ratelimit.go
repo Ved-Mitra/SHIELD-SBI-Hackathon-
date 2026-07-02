@@ -3,6 +3,7 @@ package middleware
 import (
 	"net"
 	"net/http"
+	"shield/three-gate-login/internal/kafka"
 	"strings"
 	"sync"
 	"time"
@@ -49,6 +50,8 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 			w.Header().Set("Retry-After", "60")
 			w.Header().Set("Content-Type", "application/json")
 			http.Error(w, `{"error":"rate limit exceeded"}`, http.StatusTooManyRequests)
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: "Rate limit exceeded (Possible Brute Force)"})
+
 			return
 		}
 		next.ServeHTTP(w, r)
