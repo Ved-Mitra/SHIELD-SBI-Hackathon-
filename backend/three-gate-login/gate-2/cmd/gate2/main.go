@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"shield/three-gate-login/internal/config"
+	"shield/three-gate-login/internal/kafka"
 	"shield/three-gate-login/internal/server"
 )
 
@@ -20,6 +21,9 @@ func main() {
 	}
 
 	h := server.New(cfg)
+
+	defer kafka.CloseProducer()
+
 	srv := server.DefaultServer(cfg.Addr, h)
 
 	log.Printf("[INFO] gate-2 listening on %s (mock_gate1=%v)", cfg.Addr, cfg.MockGate1)
