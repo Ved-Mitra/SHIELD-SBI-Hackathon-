@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -18,12 +19,13 @@ func InitProducer(brokerUrl string){
 	}
 }
 
-type AuthEvent struct{
+type PhishingEvent struct{
 	UserId string `json:"user_id"`
 	Url string `json:"url"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
-func PublishPhishingEvent(event AuthEvent) error{
+func PublishPhishingEvent(event PhishingEvent) error{
 	if writer==nil{
 		fmt.Println("Kafka Writer is NULL in risk-url-engine")
 	}
