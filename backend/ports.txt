@@ -1,0 +1,21 @@
+# Backend Services Port Allocation Map
+
+## Core Infrastructure
+- PostgreSQL (shield-db) : 5432
+- Redis (shield-redis)   : 6379
+- Zookeeper              : 2181 (client), 2888, 3888 (peer/leader)
+- Kafka                  : 9092
+
+## Three-Gate Login Services
+- Gate 1 (App Auth)      : 8081
+- Gate 2 (Channel/mTLS)  : 8080 (Internal App)
+- Gate 2 Proxy (Envoy)   : 8443 (External HTTPS)
+                         : 9901 (Envoy Admin Interface)
+- Gate 3 (User/FIDO2)    : 8082
+
+## Analytics & Monitoring
+- Grafana Dashboard      : 3000
+
+## Future Services
+- risk-url-engine        : [Available, e.g., 8083]
+- airflow-takedown-DAG   : [Available, usually 8080 if using webserver]
