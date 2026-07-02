@@ -1,0 +1,91 @@
+version: '3.8'
+
+x-airflow-common:
+  &airflow-common
+  build: ../../backend/airflow-takedown-DAG
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    - AIRFLOW__CORE__FERNET_KEY=46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+    - AIRFLOW__CORE__LOAD_EXAMPLES=false
+    # Enable Basic Auth for our Kafka consumer REST API calls
+    - AIRFLOW__API__AUTH_BACKENDS=airflow.api.auth.backend.basic_auth
+    - KAFKA_BROKER_URL=kafka:9092
+    - AIRFLOW_URL=http://airflow-webserver:8080/api/v1/dags/takedown_pipeline/dagRuns
+  volumes:
+    - ../../backend/airflow-takedown-DAG/dags:/opt/airflow/dags
+    - ../../backend/airflow-takedown-DAG/scripts:/opt/airflow/scripts
+    - ../../backend/airflow-takedown-DAG/config:/opt/airflow/config
+  networks:
+    - airflow-net
+    - shield-network
+
+services:
+  airflow-postgres:
+    image: postgres:13-alpine
+    container_name: airflow-postgres
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      retries: 5
+    networks:
+      - airflow-net
+
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow-init
+    entrypoint: >
+      bash -c "
+      airflow db migrate &&
+      airflow users create --username airflow --password airflow --firstname Admin --lastname Admin --role Admin --email admin@shield.com
+      "
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow-webserver
+    command: webserver
+    ports:
+      - "8084:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+  # Our custom Kafka Python script running alongside Airflow
+  takedown-kafka-consumer:
+    <<: *airflow-common
+    container_name: takedown-kafka-consumer
+    command: python /opt/airflow/scripts/kafka_consumer.py
+    restart: always
+    depends_on:
+      airflow-webserver:
+        condition: service_healthy
+
+networks:
+  airflow-net:
+    driver: bridge
+  shield-network:
+    external: true
+    # This matches the network name created by your main infrastructure/docker-compose.yml
+    name: infrastructure_shield-network
