@@ -1,0 +1,7 @@
+auto_takedown:
+  confidence_threshold: 90
+  severity: "high"
+reporting_endpoints:
+  google_play: "https://api.play.google.com/v1/applications/takedown"
+  i4c: "https://cybercrime.gov.in/api/v1/report"
+  cert_in: "https://cert-in.org.in/api/v1/incident"
