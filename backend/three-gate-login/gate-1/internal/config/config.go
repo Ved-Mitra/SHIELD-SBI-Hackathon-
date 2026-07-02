@@ -62,7 +62,7 @@ func Load() Config {
 		PackageName:        getEnv("GATE1_ANDROID_PACKAGE_NAME", "com.sbi.yono"),
 		AppID:              getEnv("GATE1_IOS_APP_ID", "TEAMID.com.sbi.yono"),
 		ServiceAccountPath: getEnv("GATE1_SERVICE_ACCOUNT_PATH", ""),
-		NonceStoreDSN:      getEnv("GATE1_NONCE_STORE_ADDR", "localhost:6379"),
+		NonceStoreDSN:      getEnv("GATE1_REDIS_ADDR", "localhost:6379"),
 		NonceTTL:           getDuration("GATE1_NONCE_TTL", 5*time.Minute),
 		MockAttestation:    getBool("GATE1_MOCK_ATTESTATION"),
 		KafkaBrokerUrl: 	getEnv("KAFKA_BROKER_URL","localhost:9092"),
