@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o gate2 ./cmd/gate2
 
 # Final stage
-FROM alpine:latest
+FROM alpine:3.20
 
 WORKDIR /app
 

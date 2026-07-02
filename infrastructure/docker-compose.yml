@@ -107,14 +107,14 @@ services:
     container_name: gate3-app
     environment:
       - GATE3_ADDR=:8082
-      - GATE3_GATE2_PUBLIC_KEY_PATH=/root/certs/gate2/public.pem
+      - GATE3_GATE2_PUBLIC_KEY_PATH=/app/certs/gate2/public.pem
       - GATE3_REDIS_ADDR=shield-redis:6379
       - GATE3_DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
       - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
       - GATE3_MOCK_GATE2=false
       - KAFKA_BROKER_URL=kafka:9092
     volumes:
-      - ../backend/three-gate-login/gate-3/certs:/root/certs:ro
+      - ../backend/three-gate-login/gate-3/certs:/app/certs:ro
     ports:
       - "8082:8082"
     depends_on:
