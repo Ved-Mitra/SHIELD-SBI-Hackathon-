@@ -37,7 +37,7 @@ chmod 600 "${CERT_DIR}/private.pem"
 echo ""
 echo "✅  Keys generated:"
 chmod 644 "${CERT_DIR}"/*
-echo "Generated Gate 1 keys in ${CERT_DIR}"/private.pem  (chmod 600 — DO NOT COMMIT)"
+echo "    Private key : ${CERT_DIR}/private.pem  (chmod 644 for CI — DO NOT COMMIT)"
 echo "    Public  key : ${CERT_DIR}/public.pem"
 echo ""
 echo "📋  Next steps:"
