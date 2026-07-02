@@ -23,7 +23,7 @@ type AuthEvent struct{
 	Url string `json:"url"`
 }
 
-func PublishEvent(event AuthEvent) error{
+func PublishPhishingEvent(event AuthEvent) error{
 	if writer==nil{
 		fmt.Println("Kafka Writer is NULL in risk-url-engine")
 	}
