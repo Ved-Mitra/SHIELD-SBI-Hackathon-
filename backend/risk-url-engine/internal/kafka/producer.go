@@ -20,7 +20,7 @@ func InitProducer(brokerUrl string){
 }
 
 type PhishingEvent struct{
-	deviceId string `json:"device_id"`
+	DeviceId string `json:"device_id"`
 	Url string `json:"url"`
 	Timestamp time.Time `json:"timestamp"`
 }
