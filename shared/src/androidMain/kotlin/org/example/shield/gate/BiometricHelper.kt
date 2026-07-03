@@ -8,8 +8,12 @@ import org.example.shield.AndroidContextProvider
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 object BiometricHelper {
-    suspend fun promptBiometric(): Boolean = suspendCancellableCoroutine { continuation ->
+    suspend fun promptBiometric(): Boolean = withContext(Dispatchers.Main) {
+        suspendCancellableCoroutine { continuation ->
         val activity = AndroidContextProvider.context as? FragmentActivity
         if (activity == null) {
             continuation.resumeWithException(Exception("Android Context is not a FragmentActivity. Cannot show Biometric prompt."))
@@ -47,5 +51,6 @@ object BiometricHelper {
         continuation.invokeOnCancellation {
             biometricPrompt.cancelAuthentication()
         }
+    }
     }
 }

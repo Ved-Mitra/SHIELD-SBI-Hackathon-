@@ -122,6 +122,7 @@ actual class GateClient actual constructor() {
             val finishUrl = URL("${Constants.GATE3_FINISH_URL}?username=$username")
             val finishConn = finishUrl.openConnection() as HttpURLConnection
             finishConn.requestMethod = "POST"
+            finishConn.setRequestProperty("Authorization", "Bearer $gate2Token")
             finishConn.setRequestProperty("Content-Type", "application/json")
             finishConn.doOutput = true
 
@@ -171,6 +172,7 @@ actual class GateClient actual constructor() {
             val finishUrl = URL("${Constants.GATE3_REGISTER_FINISH_URL}?username=$username")
             val finishConn = finishUrl.openConnection() as HttpURLConnection
             finishConn.requestMethod = "POST"
+            finishConn.setRequestProperty("Authorization", "Bearer $gate2Token")
             finishConn.setRequestProperty("Content-Type", "application/json")
             finishConn.doOutput = true
 
@@ -181,7 +183,7 @@ actual class GateClient actual constructor() {
             }
             OutputStreamWriter(finishConn.outputStream).use { it.write(finishPayload.toString()) }
 
-            if (finishConn.responseCode == 200) {
+            if (finishConn.responseCode == 200 || finishConn.responseCode == 201) {
                 Result.success("registration_success")
             } else {
                 Result.failure(Exception("Gate 3 Registration Finish failed: ${finishConn.responseCode}"))
