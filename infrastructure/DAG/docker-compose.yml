@@ -55,7 +55,8 @@ services:
       test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
       interval: 10s
       timeout: 10s
-      retries: 5
+      retries: 20
+      start_period: 60s
     restart: always
     depends_on:
       airflow-init:

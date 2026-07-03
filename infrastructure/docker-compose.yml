@@ -44,7 +44,7 @@ services:
     environment:
       - GATE1_ADDR=:8081
       - GATE1_REDIS_ADDR=shield-redis:6379
-      - GATE1_MOCK_ATTESTATION=false
+      - GATE1_MOCK_ATTESTATION=true
       - GATE1_SERVICE_ACCOUNT_PATH=/app/secrets/three-gate-login-service-account.json
       - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
       - KAFKA_BROKER_URL=kafka:9092
@@ -112,6 +112,7 @@ services:
       - GATE3_DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
       - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
       - GATE3_MOCK_GATE2=false
+      - GATE3_MOCK_FIDO2=true
       - KAFKA_BROKER_URL=kafka:9092
     volumes:
       - ../backend/three-gate-login/gate-3/certs:/app/certs:ro
