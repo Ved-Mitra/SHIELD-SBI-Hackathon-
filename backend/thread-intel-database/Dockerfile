@@ -1,7 +1,4 @@
-FROM golang:1.22-alpine AS builder
-
-# Install build dependencies for confluent-kafka-go (requires cgo)
-RUN apk add --no-cache gcc musl-dev libc-dev
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -11,8 +8,7 @@ COPY . .
 # Must enable CGO for confluent-kafka-go
 RUN CGO_ENABLED=1 GOOS=linux go build -o consumer ./cmd/consumer
 
-FROM alpine:latest
-RUN apk add --no-cache ca-certificates
+FROM alpine:3.20
 WORKDIR /app
 COPY --from=builder /app/consumer .
 
