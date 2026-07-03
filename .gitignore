@@ -14,3 +14,6 @@ three-gate-login-service-account.json
 # Block entire sensitive directories
 secrets/
 .env
+
+#code review
+shield_code_review.md
