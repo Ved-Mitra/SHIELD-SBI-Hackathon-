@@ -20,6 +20,7 @@ services:
       - shield-db-data:/var/lib/postgresql/data
       - ../backend/user-database/schema.sql:/docker-entrypoint-initdb.d/0-user-schema.sql:ro
       - ../backend/three-gate-login/gate-3/schema.sql:/docker-entrypoint-initdb.d/1-gate3-schema.sql:ro
+      - ../backend/thread-intel-database/schema/001_init.sql:/docker-entrypoint-initdb.d/2-threat-intel-schema.sql:ro
     ports:
       - "5432:5432"
     networks:
@@ -181,6 +182,22 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - shield-network
+
+  thread-intel-consumer:
+    build:
+      context: ../backend/thread-intel-database
+    container_name: thread-intel-consumer
+    environment:
+      - KAFKA_BROKER_URL=kafka:9092
+      - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_started
+      shield-db:
+        condition: service_healthy
     networks:
       - shield-network
 
