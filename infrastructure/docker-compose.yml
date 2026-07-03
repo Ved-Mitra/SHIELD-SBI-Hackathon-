@@ -29,6 +29,13 @@ services:
   redis:
     image: redis:7-alpine
     container_name: shield-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
     ports:
       - "6379:6379"
     networks:
@@ -160,6 +167,13 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - shield-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'ruok' | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   kafka:
     image: confluentinc/cp-kafka:7.6.1
@@ -174,6 +188,13 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     networks:
       - shield-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   dashboard:
     image: grafana/grafana:latest
