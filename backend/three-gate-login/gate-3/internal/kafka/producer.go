@@ -24,8 +24,11 @@ type AuthEvent struct{
 }
 
 func PublishEvent(event AuthEvent) error{
-	payload, _ :=json.Marshal(event);
-	return writer.WriteMessages(context.Background(),kafka.Message{Value: payload});
+	if writer!=nil {
+		payload, _ :=json.Marshal(event);
+		return writer.WriteMessages(context.Background(),kafka.Message{Value: payload});
+	}
+	return nil
 }
 
 func CloseProducer() error{

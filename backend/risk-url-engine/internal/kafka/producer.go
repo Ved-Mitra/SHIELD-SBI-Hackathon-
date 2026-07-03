@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -26,11 +25,11 @@ type PhishingEvent struct{
 }
 
 func PublishPhishingEvent(event PhishingEvent) error{
-	if writer==nil{
-		fmt.Println("Kafka Writer is NULL in risk-url-engine")
+	if writer!=nil {
+		payload, _ :=json.Marshal(event);
+		return writer.WriteMessages(context.Background(),kafka.Message{Value: payload});
 	}
-	payload, _ := json.Marshal(event)
-	return writer.WriteMessages(context.Background(),kafka.Message{Value: payload})
+	return nil
 }
 
 func CloseProducer() error{
