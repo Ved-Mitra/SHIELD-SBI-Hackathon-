@@ -8,4 +8,6 @@ actual object Constants {
     actual val GATE2_URL = "$BASE_URL:8443/gate2/token" // Hitting Envoy Proxy for mTLS
     actual val GATE3_BEGIN_URL = "$BASE_URL:8082/gate3/authenticate/begin"
     actual val GATE3_FINISH_URL = "$BASE_URL:8082/gate3/authenticate/finish"
+    actual val GATE3_REGISTER_BEGIN_URL = "$BASE_URL:8082/gate3/register/begin"
+    actual val GATE3_REGISTER_FINISH_URL = "$BASE_URL:8082/gate3/register/finish"
 }

@@ -17,4 +17,9 @@ actual class GateClient actual constructor() {
         delay(1500)
         return Result.success("mock_final_banking_session_token_ios")
     }
+
+    actual suspend fun registerGate3(gate2Token: String, username: String): Result<String> {
+        delay(1500)
+        return Result.success("mock_registration_success_ios")
+    }
 }

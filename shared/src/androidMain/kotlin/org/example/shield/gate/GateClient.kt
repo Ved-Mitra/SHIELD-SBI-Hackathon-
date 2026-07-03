@@ -143,4 +143,51 @@ actual class GateClient actual constructor() {
             Result.failure(e)
         }
     }
+
+    actual suspend fun registerGate3(gate2Token: String, username: String): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // Step 1: Begin Registration
+            val beginUrl = URL(Constants.GATE3_REGISTER_BEGIN_URL)
+            val beginConn = beginUrl.openConnection() as HttpURLConnection
+            beginConn.requestMethod = "POST"
+            beginConn.setRequestProperty("Authorization", "Bearer $gate2Token")
+            beginConn.setRequestProperty("Content-Type", "application/json")
+            beginConn.doOutput = true
+
+            val beginPayload = JSONObject().apply { put("username", username) }
+            OutputStreamWriter(beginConn.outputStream).use { it.write(beginPayload.toString()) }
+
+            if (beginConn.responseCode != 200) {
+                return@withContext Result.failure(Exception("Gate 3 Registration Begin failed: ${beginConn.responseCode}"))
+            }
+
+            // Prompt user for fingerprint/face to generate a new Passkey
+            val biometricSuccess = BiometricHelper.promptBiometric()
+            if (!biometricSuccess) {
+                return@withContext Result.failure(Exception("Biometric Registration Cancelled or Failed"))
+            }
+
+            // Step 2: Finish Registration
+            val finishUrl = URL("${Constants.GATE3_REGISTER_FINISH_URL}?username=$username")
+            val finishConn = finishUrl.openConnection() as HttpURLConnection
+            finishConn.requestMethod = "POST"
+            finishConn.setRequestProperty("Content-Type", "application/json")
+            finishConn.doOutput = true
+
+            val finishPayload = JSONObject().apply {
+                // Mock FIDO2 public key creation response
+                put("id", "new_credential_id")
+                put("type", "public-key")
+            }
+            OutputStreamWriter(finishConn.outputStream).use { it.write(finishPayload.toString()) }
+
+            if (finishConn.responseCode == 200) {
+                Result.success("registration_success")
+            } else {
+                Result.failure(Exception("Gate 3 Registration Finish failed: ${finishConn.responseCode}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
