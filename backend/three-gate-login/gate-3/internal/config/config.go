@@ -18,6 +18,7 @@ type Config struct {
 	RedisAddr      string
 	DatabaseDSN    string
 	MockGate2      bool
+	MockFido2      bool
 
 	WebAuthn *webauthn.Config
 	KafkaBrokerUrl string
@@ -56,6 +57,7 @@ func Load() Config {
 		RedisAddr:      getEnv("GATE3_REDIS_ADDR", "localhost:6379"),
 		DatabaseDSN:    getEnv("GATE3_DB_DSN", ""),
 		MockGate2:      mockGate2,
+		MockFido2:      getBool("GATE3_MOCK_FIDO2"),
 		WebAuthn:       wconfig,
 		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL","localhost:9092"),
 	}

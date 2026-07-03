@@ -24,6 +24,7 @@ type WebAuthnHandler struct {
 	WebAuthn  *webauthn.WebAuthn
 	Sessions  SessionStore
 	UserStore store.UserStore
+	MockFido2 bool
 }
 
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
@@ -81,11 +82,21 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	credential, err := h.WebAuthn.FinishRegistration(user, *sessionData, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
-		return
+	var credential *webauthn.Credential
+	if h.MockFido2 {
+		credential = &webauthn.Credential{
+			ID:              []byte("new_credential_id"),
+			PublicKey:       []byte("mock_public_key"),
+			AttestationType: "mock",
+		}
+	} else {
+		var err error
+		credential, err = h.WebAuthn.FinishRegistration(user, *sessionData, r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
+			return
+		}
 	}
 
 	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Registration finished"})
@@ -152,11 +163,22 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	credential, err := h.WebAuthn.FinishLogin(user, *sessionData, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
-		return
+	var credential *webauthn.Credential
+	if h.MockFido2 {
+		credential = &webauthn.Credential{
+			ID: []byte("new_credential_id"),
+			Authenticator: webauthn.Authenticator{
+				SignCount: 1,
+			},
+		}
+	} else {
+		var err error
+		credential, err = h.WebAuthn.FinishLogin(user, *sessionData, r)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
+			return
+		}
 	}
 
 	h.UserStore.UpdateCounter(r.Context(), username, credential.ID, credential.Authenticator.SignCount)

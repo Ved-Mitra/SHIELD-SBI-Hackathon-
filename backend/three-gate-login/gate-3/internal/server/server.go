@@ -45,6 +45,7 @@ func New(cfg config.Config) (http.Handler, error) {
 		WebAuthn:  wa,
 		Sessions:  sessions,
 		UserStore: userStore,
+		MockFido2: cfg.MockFido2,
 	}
 
 	rl := middleware.NewRateLimiter(rate.Every(3*time.Second), 20)
