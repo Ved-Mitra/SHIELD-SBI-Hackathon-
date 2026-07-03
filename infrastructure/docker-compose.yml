@@ -141,7 +141,7 @@ services:
     container_name: risk-url-engine
     environment:
       - RISK_URL_ENGINE_ADDR=:8083
-      - KAFKA_BROKER_URL=:9092
+      - KAFKA_BROKER_URL=kafka:9092
     ports:
       - "8083:8083"
     depends_on:
