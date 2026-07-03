@@ -1,0 +1,70 @@
+# ==========================================
+# SHIELD Backend - Helpful Terminal Commands
+# ==========================================
+
+# ------------------------------------------
+# 1. BRING UP DOCKER CONTAINERS
+# ------------------------------------------
+# (Run these in order. The main infrastructure must be up before the DAG)
+
+# Start Core Infrastructure (Kafka, Postgres, Redis, Three-Gate Go Services) -- no cache
+docker compose -f infrastructure/docker-compose.yml up -d --build
+
+docker compose -f infrastructure/docker-compose.yml up -d
+
+
+# Start Airflow Takedown DAG Environment
+docker compose -f infrastructure/DAG/docker-compose.yml up -d
+
+
+# ------------------------------------------
+# 2. BRING DOWN DOCKER CONTAINERS
+# ------------------------------------------
+# (Run these when you are done to free up RAM on your laptop)
+
+# Stop Airflow Takedown DAG
+docker compose -f infrastructure/DAG/docker-compose.yml down
+
+# Stop Core Infrastructure
+docker compose -f infrastructure/docker-compose.yml down
+
+
+# ------------------------------------------
+# 3. TEST AIRFLOW DAG (SIMULATE DEVICE REPORTING A THREAT)
+# ------------------------------------------
+# NOTE: Before running this curl command, go to http://localhost:8084 
+#       (Login: airflow / airflow) and UNPAUSE the takedown_pipeline DAG!
+
+curl -X POST http://localhost:8083/report \
+     -H "Content-Type: application/json" \
+     -d '{
+           "url": "http://extremely-malicious-sbi-clone.in",
+           "device_id": "android-device-12345",
+           "timestamp": 1720000000000
+         }'
+
+
+# ------------------------------------------
+# 4. WIRELESS TESTING (SAME WI-FI NETWORK)
+# ------------------------------------------
+# If you are testing the app on a PHYSICAL Android phone wirelessly,
+# make sure both your laptop and phone are on the exact same Wi-Fi network.
+
+# Your laptop's current local IP address is: 10.19.6.43
+# Ensure that your Android code (Constants.kt) has BASE_URL set to:
+# http://10.19.6.43
+
+# IMPORTANT: Linux firewalls usually block incoming requests from phones.
+# Run these commands once to open the ports for your Docker containers:
+# sudo ufw allow 8081/tcp   # Gate 1
+# sudo ufw allow 8443/tcp   # Gate 2
+# sudo ufw allow 8082/tcp   # Gate 3
+# sudo ufw allow 8083/tcp   # Risk Engine
+# sudo ufw reload
+
+# When you are done testing and want to securely CLOSE the ports again:
+# sudo ufw delete allow 8081/tcp
+# sudo ufw delete allow 8443/tcp
+# sudo ufw delete allow 8082/tcp
+# sudo ufw delete allow 8083/tcp
+# sudo ufw reload
