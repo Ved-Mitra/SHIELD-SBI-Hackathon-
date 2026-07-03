@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -21,7 +20,7 @@ func InitProducer(brokerUrl string){
 type PhishingEvent struct{
 	DeviceId string `json:"device_id"`
 	Url string `json:"url"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp int`json:"timestamp"`
 }
 
 func PublishPhishingEvent(event PhishingEvent) error{

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"shield/risk-url-engine/internal/kafka"
-	"time"
 )
 
 
@@ -45,9 +44,7 @@ func HandleReportPhishing(w http.ResponseWriter, r* http.Request){
 		return
 	}
 
-	eventTime:=time.UnixMilli(payload.Timestamp)
-
-	go kafka.PublishPhishingEvent(kafka.PhishingEvent{DeviceId: payload.DeviceId, Url: payload.Url, Timestamp: eventTime})
+	go kafka.PublishPhishingEvent(kafka.PhishingEvent{DeviceId: payload.DeviceId, Url: payload.Url, Timestamp: int(payload.Timestamp)})
 
 	w.Header().Set("Content-Type","application/json")
 	w.WriteHeader(http.StatusOK)
