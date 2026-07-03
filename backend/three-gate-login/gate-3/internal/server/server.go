@@ -24,10 +24,14 @@ func New(cfg config.Config) (http.Handler, error) {
 	}
 
 	var sessions handler.SessionStore
+	var tokens handler.TokenStore
 	if cfg.RedisAddr != "" {
-		sessions = store.NewRedisSessionStore(cfg.RedisAddr)
+		redisStore := store.NewRedisSessionStore(cfg.RedisAddr)
+		sessions = redisStore
+		tokens = redisStore
 	} else {
 		sessions = store.NewMemorySessionStore()
+		tokens = nil // token storage unavailable without Redis
 	}
 
 	var userStore store.UserStore
@@ -45,6 +49,7 @@ func New(cfg config.Config) (http.Handler, error) {
 		WebAuthn:  wa,
 		Sessions:  sessions,
 		UserStore: userStore,
+		Tokens:    tokens,
 		MockFido2: cfg.MockFido2,
 	}
 

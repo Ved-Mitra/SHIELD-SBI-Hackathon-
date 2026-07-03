@@ -48,3 +48,20 @@ func (s *RedisSessionStore) Load(ctx context.Context, key string) (*webauthn.Ses
 func (s *RedisSessionStore) Delete(ctx context.Context, key string) {
 	s.client.Del(ctx, key)
 }
+
+// TokenStore — stores opaque session tokens after a successful Gate-3 login.
+
+// StoreToken saves a session token in Redis keyed to the user, with a 30-minute TTL.
+func (s *RedisSessionStore) StoreToken(ctx context.Context, token, userID string) error {
+	return s.client.Set(ctx, "session:"+token, userID, 30*time.Minute).Err()
+}
+
+// ValidateToken looks up a session token and returns the associated userID.
+// Returns an empty string and error if the token is missing or expired.
+func (s *RedisSessionStore) ValidateToken(ctx context.Context, token string) (string, error) {
+	userID, err := s.client.Get(ctx, "session:"+token).Result()
+	if err == redis.Nil {
+		return "", fmt.Errorf("token not found or expired")
+	}
+	return userID, err
+}

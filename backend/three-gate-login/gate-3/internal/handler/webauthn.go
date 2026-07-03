@@ -20,11 +20,18 @@ type SessionStore interface {
 	Delete(ctx context.Context, key string)
 }
 
+// TokenStore is the interface for storing and validating opaque session tokens.
+type TokenStore interface {
+	StoreToken(ctx context.Context, token, userID string) error
+	ValidateToken(ctx context.Context, token string) (string, error)
+}
+
 type WebAuthnHandler struct {
-	WebAuthn  *webauthn.WebAuthn
-	Sessions  SessionStore
-	UserStore store.UserStore
-	MockFido2 bool
+	WebAuthn   *webauthn.WebAuthn
+	Sessions   SessionStore
+	UserStore  store.UserStore
+	Tokens     TokenStore
+	MockFido2  bool
 }
 
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
@@ -186,13 +193,20 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 
 	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Authentication finished"})
 
-	// Issue opaque session token
+	// Issue opaque session token and store it in Redis (C-5 fix)
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		http.Error(w, `{"error":"failed to generate session token"}`, http.StatusInternalServerError)
 		return
 	}
 	sessionToken := hex.EncodeToString(b)
+
+	if h.Tokens != nil {
+		if err := h.Tokens.StoreToken(r.Context(), sessionToken, string(user.WebAuthnID())); err != nil {
+			http.Error(w, `{"error":"failed to store session token"}`, http.StatusInternalServerError)
+			return
+		}
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
