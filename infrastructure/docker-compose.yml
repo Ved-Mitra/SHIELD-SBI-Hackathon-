@@ -196,7 +196,7 @@ services:
     depends_on:
       kafka:
         condition: service_started
-      shield-db:
+      db:
         condition: service_healthy
     networks:
       - shield-network
