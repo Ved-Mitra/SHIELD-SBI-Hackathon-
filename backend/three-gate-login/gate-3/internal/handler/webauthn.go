@@ -188,7 +188,10 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 
 	// Issue opaque session token
 	b := make([]byte, 32)
-	rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		http.Error(w, `{"error":"failed to generate session token"}`, http.StatusInternalServerError)
+		return
+	}
 	sessionToken := hex.EncodeToString(b)
 
 	w.Header().Set("Content-Type", "application/json")
