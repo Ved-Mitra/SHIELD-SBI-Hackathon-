@@ -37,18 +37,36 @@ fun App() {
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        loginManager.performLogin("ved@sbi.example").collect { state ->
-                            loginState = state
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            loginManager.performRegistration("ved@sbi.example").collect { state ->
+                                loginState = state
+                            }
                         }
-                    }
-                },
-                enabled = loginState == LoginState.Idle || loginState is LoginState.Error,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
-            ) {
-                Text(if (loginState is LoginState.Error) "Retry Login" else "Start Banking Login")
+                    },
+                    enabled = loginState == LoginState.Idle || loginState is LoginState.Error,
+                    modifier = Modifier.weight(1f).height(50.dp)
+                ) {
+                    Text("1. Register Passkey")
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            loginManager.performLogin("ved@sbi.example").collect { state ->
+                                loginState = state
+                            }
+                        }
+                    },
+                    enabled = loginState == LoginState.Idle || loginState is LoginState.Error,
+                    modifier = Modifier.weight(1f).height(50.dp)
+                ) {
+                    Text("2. Authenticate")
+                }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
