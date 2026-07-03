@@ -18,9 +18,9 @@ func InitProducer(brokerUrl string){
 }
 
 type PhishingEvent struct{
-	DeviceId string `json:"device_id"`
-	Url string `json:"url"`
-	Timestamp int64`json:"timestamp"`
+	DeviceId  string `json:"device_id"`
+	Url       string `json:"url"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 func PublishPhishingEvent(event PhishingEvent) error{
