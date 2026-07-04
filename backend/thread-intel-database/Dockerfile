@@ -6,11 +6,11 @@ RUN go mod download
 
 COPY . .
 # Pure Go build, no CGO required for segmentio/kafka-go
-RUN CGO_ENABLED=0 GOOS=linux go build -o consumer ./cmd/consumer
+RUN CGO_ENABLED=0 GOOS=linux go build -o thread-consumer ./cmd/consumer
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
-COPY --from=builder /app/consumer .
+COPY --from=builder /app/thread-consumer .
 
-CMD ["./consumer"]
+CMD ["./thread-consumer"]
