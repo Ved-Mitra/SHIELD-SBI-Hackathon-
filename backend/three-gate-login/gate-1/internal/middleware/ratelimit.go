@@ -48,7 +48,7 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 		if !rl.allow(ip) {
 			w.Header().Set("Retry-After", "60")
 			http.Error(w, `{"error":"rate limit exceeded"}`, http.StatusTooManyRequests)
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: "Rate limit exceeded (Possible Brute Force)"})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: "Rate limit exceeded (Possible Brute Force)", TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 		next.ServeHTTP(w, r)

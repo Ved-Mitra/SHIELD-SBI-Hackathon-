@@ -26,4 +26,3 @@ func Logging(next http.Handler) http.Handler {
 		log.Printf("%s %s %d %s request_id=%s", r.Method, r.URL.Path, recorder.status, time.Since(start), r.Header.Get(requestIDHeader))
 	})
 }
-

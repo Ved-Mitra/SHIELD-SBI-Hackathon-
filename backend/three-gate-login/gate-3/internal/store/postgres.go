@@ -118,7 +118,7 @@ func (s *PostgresUserStore) UpdateCounter(ctx context.Context, username string, 
 
 	// Update the sign_count column, and also we need to update the JSON payload for completeness
 	// (or just rely on the JSON payload. We'll update the JSON payload for simplicity).
-	
+
 	var credJSON []byte
 	err = s.db.QueryRowContext(ctx, "SELECT public_key FROM webauthn_credentials WHERE user_id = $1 AND id = $2", id, credentialID).Scan(&credJSON)
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *PostgresUserStore) UpdateCounter(ctx context.Context, username string, 
 	if err := json.Unmarshal(credJSON, &cred); err != nil {
 		return err
 	}
-	
+
 	cred.Authenticator.SignCount = signCount
 	updatedJSON, err := json.Marshal(cred)
 	if err != nil {

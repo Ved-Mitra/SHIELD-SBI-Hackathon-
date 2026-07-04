@@ -57,7 +57,7 @@ func Load() Config {
 		Gate1PublicKey: gate1PubKey,
 		ClientIDHeader: getEnv("GATE2_CLIENT_ID_HEADER", "x-client-dn"),
 		MockGate1:      mockGate1,
-		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL","localhost:9092"),
+		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL", "localhost:9092"),
 	}
 }
 

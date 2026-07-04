@@ -27,7 +27,7 @@ import (
 func New(cfg config.Config) http.Handler {
 	// initialize kafka producer
 	kafka.InitProducer(cfg.KafkaBrokerUrl)
-	
+
 	// ── Rate limiter: ~20 req/min per IP, burst 20 ────────────────────────────
 	// /gate2/token is called once per login — low rate is fine for real traffic.
 	// Burst of 20 prevents smoke tests from self-rate-limiting.

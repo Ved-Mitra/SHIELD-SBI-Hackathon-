@@ -21,6 +21,7 @@ type AuthEvent struct{
 	Gate int `json:"gate"`
 	Status string `json:"status"`
 	Reason string `json:"reason"`
+	TimeStamp int64 `json:"timestamp"`
 }
 
 func PublishEvent(event AuthEvent) error{

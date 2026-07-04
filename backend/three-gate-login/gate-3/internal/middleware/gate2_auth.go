@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"shield/gate3/internal/jwt"
 	"shield/gate3/internal/kafka"
@@ -27,7 +28,7 @@ func Gate2Auth(gate2PublicKey *rsa.PublicKey, next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 		if !strings.HasPrefix(authHeader, "Bearer ") {
 			writeAuthError(w, "missing or malformed Authorization header")
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 3, Status: "FAILED", Reason: "missing or malformed Aithorization header"})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 3, Status: "FAILED", Reason: "missing or malformed Aithorization header", TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
@@ -36,7 +37,7 @@ func Gate2Auth(gate2PublicKey *rsa.PublicKey, next http.Handler) http.Handler {
 		if err != nil {
 			log.Printf("[WARN] Gate2Auth: invalid G2-JWT: %v", err)
 			writeAuthError(w, "invalid or expired G2-JWT")
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 3, Status: "FAILED", Reason: "invalid or expired G2-JWT"})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 3, Status: "FAILED", Reason: "invalid or expired G2-JWT", TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 

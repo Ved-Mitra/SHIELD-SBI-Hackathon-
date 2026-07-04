@@ -67,19 +67,19 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req model.AttestRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 32*1024)).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED",  Reason: "in valid request body"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED",  Reason: "in valid request body", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
 	// ── Validate required fields ──────────────────────────────────────────────
 	if req.Nonce == "" {
 		writeError(w, http.StatusBadRequest, "nonce is required")
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED", Reason: "Nonce not found"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED", Reason: "Nonce not found", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 	if req.Platform != "android" && req.Platform != "ios" {
 		writeError(w, http.StatusBadRequest, `platform must be "android" or "ios"`)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED", Reason: "platform other than android and ios"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1,Status: "FAILED", Reason: "platform other than android and ios", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -88,7 +88,7 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if !h.nonceStore.Consume(r.Context(), req.Nonce) {
 		log.Printf("[WARN] replayed or invalid nonce %q from %s", req.Nonce, r.RemoteAddr)
 		writeError(w, http.StatusUnauthorized, "invalid or replayed nonce")
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: "Nonce was replayed or invalid"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: "Nonce was replayed or invalid", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -112,11 +112,11 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Printf("[ERROR] attestation failed platform=%s nonce=%s: %v",
 				req.Platform, req.Nonce, verifyErr)
 			writeError(w, http.StatusUnauthorized, "attestation verification failed")
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: fmt.Sprintf("Attest failed on platform %s", req.Platform)})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: fmt.Sprintf("Attest failed on platform %s", req.Platform), TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "PASSED", Reason:"Gate-1 verified"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "PASSED", Reason:"Gate-1 verified", TimeStamp: time.Now().UnixMilli()})
 	}
 
 	// ── Issue G1-JWT ──────────────────────────────────────────────────────────

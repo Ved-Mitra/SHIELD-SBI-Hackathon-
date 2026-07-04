@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"shield/gate3/internal/kafka"
 	"shield/gate3/internal/store"
@@ -27,11 +28,11 @@ type TokenStore interface {
 }
 
 type WebAuthnHandler struct {
-	WebAuthn   *webauthn.WebAuthn
-	Sessions   SessionStore
-	UserStore  store.UserStore
-	Tokens     TokenStore
-	MockFido2  bool
+	WebAuthn  *webauthn.WebAuthn
+	Sessions  SessionStore
+	UserStore store.UserStore
+	Tokens    TokenStore
+	MockFido2 bool
 }
 
 func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +59,7 @@ func (h *WebAuthnHandler) RegisterBegin(w http.ResponseWriter, r *http.Request) 
 	creation, sessionData, err := h.WebAuthn.BeginRegistration(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError)})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError), TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -78,14 +79,14 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	user, err := h.UserStore.Get(r.Context(), username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during RegisterFinish"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during RegisterFinish", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
 	sessionData, err := h.Sessions.Load(r.Context(), "reg:"+username)
 	if err != nil {
 		http.Error(w, "session expired", http.StatusBadRequest)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: username,Gate: 3,Status: "FAILED", Reason: "session expired"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: "session expired", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -101,12 +102,12 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 		credential, err = h.WebAuthn.FinishRegistration(user, *sessionData, r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized), TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 	}
 
-	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Registration finished"})
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Registration finished", TimeStamp: time.Now().UnixMilli()})
 
 	h.UserStore.AddCredential(r.Context(), username, credential)
 	h.Sessions.Delete(r.Context(), "reg:"+username)
@@ -124,7 +125,9 @@ func (h *WebAuthnHandler) AuthBegin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req struct{ Username string `json:"username"` }
+	var req struct {
+		Username string `json:"username"`
+	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -133,14 +136,14 @@ func (h *WebAuthnHandler) AuthBegin(w http.ResponseWriter, r *http.Request) {
 	user, err := h.UserStore.Get(r.Context(), req.Username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during AuthBegin"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: "User not found in DB during AuthBegin", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
 	assertion, sessionData, err := h.WebAuthn.BeginLogin(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError)})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError), TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -166,7 +169,7 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 	sessionData, err := h.Sessions.Load(r.Context(), "auth:"+username)
 	if err != nil {
 		http.Error(w, "session expired", http.StatusBadRequest)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: username,Gate: 3,Status: "FAILED", Reason: "session expired"})
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: "session expired", TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 
@@ -183,7 +186,7 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 		credential, err = h.WebAuthn.FinishLogin(user, *sessionData, r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
-			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3,Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized)})
+			go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Error: %d", http.StatusUnauthorized), TimeStamp: time.Now().UnixMilli()})
 			return
 		}
 	}
@@ -191,7 +194,7 @@ func (h *WebAuthnHandler) AuthFinish(w http.ResponseWriter, r *http.Request) {
 	h.UserStore.UpdateCounter(r.Context(), username, credential.ID, credential.Authenticator.SignCount)
 	h.Sessions.Delete(r.Context(), "auth:"+username)
 
-	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Authentication finished"})
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Authentication finished", TimeStamp: time.Now().UnixMilli()})
 
 	// Issue opaque session token and store it in Redis (C-5 fix)
 	b := make([]byte, 32)

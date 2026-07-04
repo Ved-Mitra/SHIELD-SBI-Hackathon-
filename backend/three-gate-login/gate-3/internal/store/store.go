@@ -17,10 +17,10 @@ type User struct {
 	credentials []webauthn.Credential
 }
 
-func (u *User) WebAuthnID() []byte { return u.id }
-func (u *User) WebAuthnName() string { return u.username }
-func (u *User) WebAuthnDisplayName() string { return u.displayName }
-func (u *User) WebAuthnIcon() string { return "" }
+func (u *User) WebAuthnID() []byte                         { return u.id }
+func (u *User) WebAuthnName() string                       { return u.username }
+func (u *User) WebAuthnDisplayName() string                { return u.displayName }
+func (u *User) WebAuthnIcon() string                       { return "" }
 func (u *User) WebAuthnCredentials() []webauthn.Credential { return u.credentials }
 
 type UserStore interface {

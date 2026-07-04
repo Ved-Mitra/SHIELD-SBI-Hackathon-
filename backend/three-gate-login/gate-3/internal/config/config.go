@@ -20,7 +20,7 @@ type Config struct {
 	MockGate2      bool
 	MockFido2      bool
 
-	WebAuthn *webauthn.Config
+	WebAuthn       *webauthn.Config
 	KafkaBrokerUrl string
 }
 
@@ -59,7 +59,7 @@ func Load() Config {
 		MockGate2:      mockGate2,
 		MockFido2:      getBool("GATE3_MOCK_FIDO2"),
 		WebAuthn:       wconfig,
-		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL","localhost:9092"),
+		KafkaBrokerUrl: getEnv("KAFKA_BROKER_URL", "localhost:9092"),
 	}
 }
 
