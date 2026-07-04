@@ -1,32 +1,18 @@
-# Dashboard (prototype)
+# Dashboard
 
-## Scope
-- Show threat intel, takedown status, and system health.
-- Provide filters and drill-down on indicators.
+## Overview
+The SHIELD Dashboard provides real-time visualization of threat intelligence (phishing URLs detected) and authentication audit events (login successes, failures, and brute-force attempts).
 
-## Data sources
-- Threat intel DB (read-only queries).
-- Airflow takedown status (latest task state).
-- Gate-2 auth status (basic metrics only).
+## Current Implementation Details
+- **Platform**: Grafana
+- **Data Source**: PostgreSQL (`intel_db`) containing the `threat_intel` and `auth_events` tables populated by the Kafka consumers.
+- **Docker**: Deploys as the `dashboard` service on port `3000`.
 
-## Minimal features
-- List view: indicators with status and severity.
-- Detail view: evidence and timeline.
-- Takedown queue: pending and in-progress.
-- Health cards: DAG last run, failures.
+## Accessing the Dashboard
+- URL: `http://localhost:3000`
+- Default Credentials: `admin` / `admin` (Configured in `docker-compose.yml`)
 
-## API notes (prototype)
-- Backend API should expose read-only endpoints.
-- Cache responses lightly to reduce DB load.
-
-## Proposed structure
-```
-Dashboard/
-  README.md
-  src/
-  public/
-```
-
-## References
-- Dashboard design patterns: https://www.nngroup.com/articles/dashboard-design/
-
+## Key Metrics Visualized
+- High/Critical severity phishing URLs intercepted by the on-device engine.
+- WebAuthn registration and authentication events across all three gates.
+- Rate-limit events (potential brute force attacks).

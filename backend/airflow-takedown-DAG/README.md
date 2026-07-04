@@ -1,45 +1,22 @@
-# airflow-takedown-DAG (prototype)
+# Airflow Takedown DAG
 
-## Scope
-- Automate takedown workflows for threat signals.
-- Accept inputs from threat-intel database and policy rules.
-- Produce audit logs and status updates for the dashboard.
+## Overview
+This module automates the regulatory reporting and domain takedown process for SHIELD. It listens to Kafka for new phishing threats and triggers workflows to report them.
 
-## Inputs
-- Indicators: domains, URLs, IPs, handles.
-- Confidence score and severity.
-- Evidence bundle (links, screenshots, hashes).
+## Workflow
+1. A Kafka consumer (`scripts/kafka_consumer.py`) listens to the `url-events` topic.
+2. When a phishing URL is received, it triggers the `takedown_pipeline` DAG in Airflow via the Airflow REST API.
+3. The DAG evaluates the threat and simulates sending automated takedown requests to authorities like Google SafeBrowsing, CERT-In, and I4C.
 
-## Outputs
-- Takedown request records.
-- Status updates per target.
-- Audit trail for review.
+## Current Implementation Details
+- **Kafka Consumer**: Written in Python using `confluent-kafka`. Hardened with robust error handling, JSON decoding protection, HTTP timeouts, and graceful shutdown on SIGTERM.
+- **Airflow DAG**: `dags/takedown_pipeline.py`. Expects configuration payload containing URL details.
 
-## Minimal DAG outline
-- `ingest_signals`
-- `rank_and_filter`
-- `prepare_takedown_packet`
-- `send_takedown_request`
-- `update_status`
-- `notify_dashboard`
-
-## Ops notes (prototype)
-- Keep DAGs and configs in-repo.
-- Use local Airflow for development.
-- Store secrets in env vars only.
-
-## Proposed structure
-```
-airflow-takedown-DAG/
-  README.md
-  dags/
-    takedown_pipeline.py
-  config/
-    policies.yaml
-  scripts/
-    seed_sample_signals.py
-```
-
-## References
-- Airflow DAGs: https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dags.html
-
+## Running Locally
+This module requires an Airflow environment and the Kafka broker to be running.
+The Kafka consumer requires:
+- `KAFKA_BROKER_URL` (default: `localhost:9092`)
+- `KAFKA_TOPIC` (default: `url-events`)
+- `AIRFLOW_URL`
+- `AIRFLOW_USER`
+- `AIRFLOW_PASSWORD`

@@ -1,38 +1,23 @@
-# thread-intel-database (prototype)
+# Threat Intel Database
 
-## Scope
-- Store threat intelligence items for SHIELD.
-- Provide searchable access for takedown and dashboard.
+## Overview
+This module consumes threat intelligence signals (phishing URLs) from the Kafka `url-events` topic and persists them into a PostgreSQL database for the Grafana dashboard and historical auditing.
 
-## Data model (minimal)
-- `indicator` (domain, url, ip, handle)
-- `source` (crawler, manual, partner)
-- `confidence` (0-100)
-- `severity` (low, medium, high)
-- `evidence` (links, hashes, notes)
-- `first_seen`, `last_seen`
-- `status` (new, in_review, takedown_requested, resolved)
+## Workflow
+1. Connects to Kafka as a consumer group (`threat-intel-db-group`).
+2. Listens to `url-events` (published by `risk-url-engine`).
+3. Upserts records into the `threat_intel` table.
 
-## Access patterns
-- Insert new intel items.
-- Query by indicator type/value.
-- Filter by severity/status/time window.
-- Join with takedown results for audit.
+## Current Implementation Details
+- **Language**: Go 1.26.3
+- **Database**: PostgreSQL (`intel_db`)
+- **Resilience**: 
+  - Connection pooling enabled (max 10 open, 5 idle).
+  - Graceful shutdown on SIGTERM.
+  - Automatic upsert (`ON CONFLICT (indicator_type, indicator_value) DO UPDATE`) to prevent duplicate rows for the same URL, instead updating the `last_seen` timestamp and `evidence` JSON.
+  - Kafka consumer ignores malformed JSON without crashing.
+- **Docker**: Deploys as `thread-intel-consumer` in `docker-compose.yml`.
 
-## Storage choice (prototype)
-- Start with Postgres + JSONB for evidence.
-- Add indexes on indicator type/value and status.
-
-## Proposed structure
-```
-thread-intel-database/
-  README.md
-  schema/
-    001_init.sql
-  docs/
-    data-dictionary.md
-```
-
-## References
-- Postgres JSONB: https://www.postgresql.org/docs/current/datatype-json.html
-
+## Database Schema
+- Managed via `schema/001_init.sql` using idempotent `CREATE TYPE` and `CREATE TABLE IF NOT EXISTS`.
+- Key columns: `indicator_type`, `indicator_value`, `confidence`, `severity`, `status`.
