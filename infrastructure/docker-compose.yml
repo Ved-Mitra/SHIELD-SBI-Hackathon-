@@ -6,6 +6,7 @@ services:
   db:
     image: postgres:15-alpine
     container_name: shield-db
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=shield
       - POSTGRES_PASSWORD=shield-pass
@@ -49,6 +50,7 @@ services:
       context: ../backend/three-gate-login/gate-1
       dockerfile: Dockerfile
     container_name: gate1-app
+    restart: unless-stopped
     environment:
       - GATE1_ADDR=:8081
       - GATE1_REDIS_ADDR=shield-redis:6379
@@ -75,6 +77,7 @@ services:
       context: ../backend/three-gate-login/gate-2
       dockerfile: Dockerfile
     container_name: gate2-app
+    restart: unless-stopped
     environment:
       - GATE2_ADDR=:8080
       - GATE2_JWT_PRIVATE_KEY_PATH=/app/certs/gate2/private.pem
@@ -94,6 +97,7 @@ services:
   gate2-proxy:
     image: envoyproxy/envoy:v1.30-latest
     container_name: gate2-proxy
+    restart: unless-stopped
     volumes:
       - ../backend/three-gate-login/gate-2/deploy/envoy/envoy-docker.yaml:/etc/envoy/envoy.yaml:ro
       - ../backend/three-gate-login/gate-2/certs/dev:/etc/envoy/certs:ro
@@ -113,6 +117,7 @@ services:
       context: ../backend/three-gate-login/gate-3
       dockerfile: Dockerfile
     container_name: gate3-app
+    restart: unless-stopped
     environment:
       - GATE3_ADDR=:8082
       - GATE3_GATE2_PUBLIC_KEY_PATH=/app/certs/gate2/public.pem
@@ -146,6 +151,7 @@ services:
       context: ../backend/risk-url-engine
       dockerfile: Dockerfile
     container_name: risk-url-engine
+    restart: unless-stopped
     environment:
       - RISK_URL_ENGINE_ADDR=:8083
       - KAFKA_BROKER_URL=kafka:9092
@@ -199,6 +205,7 @@ services:
   dashboard:
     image: grafana/grafana:latest
     container_name: shield-dashboard
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
