@@ -48,6 +48,9 @@ func New(cfg config.Config) (http.Handler, error) {
 	// Health check — no rate limiting needed
 	mux.HandleFunc("/healthz", handler.Health)
 
+	// Nonce generation endpoint — no rate limiting needed for demo
+	mux.HandleFunc("/gate1/nonce", handler.GenerateNonce)
+
 	// Attestation endpoint — apply rate limiter
 	mux.Handle("/gate1/attest", rl.Middleware(attestH))
 

@@ -115,9 +115,9 @@ func (h *AttestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "FAILED", Reason: fmt.Sprintf("Attest failed on platform %s", req.Platform), TimeStamp: time.Now().UnixMilli()})
 			return
 		}
-
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "PASSED", Reason:"Gate-1 verified", TimeStamp: time.Now().UnixMilli()})
 	}
+
+	go kafka.PublishEvent(kafka.AuthEvent{UserID: "unknown", Gate: 1, Status: "PASSED", Reason:"Gate-1 verified", TimeStamp: time.Now().UnixMilli()})
 
 	// ── Issue G1-JWT ──────────────────────────────────────────────────────────
 	now := time.Now()
