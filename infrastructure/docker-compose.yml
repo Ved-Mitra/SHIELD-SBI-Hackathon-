@@ -22,6 +22,7 @@ services:
       - ../backend/user-database/schema.sql:/docker-entrypoint-initdb.d/0-user-schema.sql:ro
       - ../backend/three-gate-login/gate-3/schema.sql:/docker-entrypoint-initdb.d/1-gate3-schema.sql:ro
       - ../backend/thread-intel-database/schema/001_init.sql:/docker-entrypoint-initdb.d/2-threat-intel-schema.sql:ro
+      - ../backend/auth-intel-database/schema/001_init.sql:/docker-entrypoint-initdb.d/3-auth-intel-schema.sql:ro
     ports:
       - "5432:5432"
     networks:
@@ -227,7 +228,7 @@ services:
       - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
       - KAFKA_TOPIC=url-events
       - KAFKA_GROUP_ID=threat-intel-db-group
-    restart: always
+    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_started
