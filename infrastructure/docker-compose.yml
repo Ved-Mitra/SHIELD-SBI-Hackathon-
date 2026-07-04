@@ -213,14 +213,44 @@ services:
     networks:
       - shield-network
 
+  # ----------------------------------------
+  # Thread-Intel-Database
+  # ----------------------------------------
+
   thread-intel-consumer:
     build:
       context: ../backend/thread-intel-database
+      dockerfile: Dockerfile
     container_name: thread-intel-consumer
     environment:
       - KAFKA_BROKER_URL=kafka:9092
       - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - KAFKA_TOPIC=url-events
+      - KAFKA_GROUP_ID=threat-intel-db-group
     restart: always
+    depends_on:
+      kafka:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Auth-Intel-Database
+  # ----------------------------------------
+
+  auth-intel-consumer:
+    build:
+      context: ../backend/auth-intel-database
+      dockerfile: Dockerfile
+    container_name: auth-intel-consumer
+    environment:
+      - KAFKA_BROKER_URL=kafka:9092
+      - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - KAFKA_TOPIC=auth-events
+      - KAFKA_GROUP_ID=auth-intel-db-group
+    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_started
