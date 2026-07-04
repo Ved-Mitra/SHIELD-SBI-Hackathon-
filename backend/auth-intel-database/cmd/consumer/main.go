@@ -31,7 +31,7 @@ func main() {
 
 	consumer, err :=kafka.NewConsumer(cfg,as)
 	if err!=nil{
-		log.Fatalf("[FATAL] Failed to initialize Kafka consumer in Auth-intel database")
+		log.Fatalf("[FATAL] Failed to initialize Kafka consumer in Auth-intel database: %v", err)
 	}
 	defer consumer.Close()
 

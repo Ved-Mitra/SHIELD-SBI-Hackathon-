@@ -66,7 +66,7 @@ func (c *Consumer) Start() error{
 			continue
 		}
 
-		if err:= c.store.InsertThreat(event); err!=nil{
+		if err:= c.store.InsertAuth(event); err!=nil{
 			log.Printf("Failed to insert into DB: %v", err)
 		} else {
 			log.Println("Successfully saved threat to database!")
