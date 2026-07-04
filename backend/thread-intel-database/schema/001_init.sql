@@ -1,16 +1,28 @@
 -- Thread-Intel Database Initial Schema
 
 -- Enum for Indicator Types
-CREATE TYPE indicator_type_enum AS ENUM ('domain', 'url', 'ip', 'handle', 'hash');
+DO $$ BEGIN
+    CREATE TYPE indicator_type_enum AS ENUM ('domain', 'url', 'ip', 'handle', 'hash');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Enum for Source
-CREATE TYPE source_enum AS ENUM ('crawler', 'manual', 'partner', 'device_ml');
+DO $$ BEGIN
+    CREATE TYPE source_enum AS ENUM ('crawler', 'manual', 'partner', 'device_ml');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Enum for Severity
-CREATE TYPE severity_enum AS ENUM ('low', 'medium', 'high', 'critical');
+DO $$ BEGIN
+    CREATE TYPE severity_enum AS ENUM ('low', 'medium', 'high', 'critical');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Enum for Status
-CREATE TYPE status_enum AS ENUM ('new', 'in_review', 'takedown_requested', 'resolved', 'false_positive');
+DO $$ BEGIN
+    CREATE TYPE status_enum AS ENUM ('new', 'in_review', 'takedown_requested', 'resolved', 'false_positive');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Table: Threat Intel
 CREATE TABLE IF NOT EXISTS threat_intel (
@@ -25,7 +37,9 @@ CREATE TABLE IF NOT EXISTS threat_intel (
     first_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- M-10 fix: UNIQUE constraint required for ON CONFLICT upsert in threat_store.go
+    UNIQUE (indicator_type, indicator_value)
 );
 
 -- Indexes for efficient querying
