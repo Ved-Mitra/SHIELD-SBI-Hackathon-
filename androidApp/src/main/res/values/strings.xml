@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">SHIELD</string>
+    <string name="app_name">Shield</string>
+    <string name="accessibility_service_description">SHIELD Guardian securely monitors the screen in the background to detect and block malicious phishing URLs, brand spoofing, and homograph attacks in real-time before you click them.</string>
 </resources>
