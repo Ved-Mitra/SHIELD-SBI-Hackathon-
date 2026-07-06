@@ -5,6 +5,8 @@ from datetime import datetime
 import logging
 import yaml
 import requests
+import os
+import psycopg2
 
 def load_policies():
     with open('/opt/airflow/config/policies.yaml', 'r') as f:
@@ -42,6 +44,20 @@ def notify_takedown_started(**context):
 def notify_takedown_completed(**context):
     url = context['dag_run'].conf.get('malicious_url', 'UNKNOWN_URL')
     logging.info(f"Dashboard Update: {url} is now DONE (Takedown Requests Successfully Sent)")
+    
+    # Try to connect and update the DB so Grafana auto-refreshes
+    db_dsn = os.getenv('DB_DSN', 'postgres://shield:shield-pass@localhost:5432/intel_db?sslmode=disable')
+    try:
+        conn = psycopg2.connect(db_dsn)
+        cursor = conn.cursor()
+        # The schema uses 'resolved' as the status enum for completed takedowns
+        cursor.execute("UPDATE threat_intel SET status = 'resolved' WHERE indicator_value = %s", (url,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logging.info(f"Database Successfully Updated: Status for {url} changed to 'resolved'")
+    except Exception as e:
+        logging.error(f"Failed to update PostgreSQL database for {url}: {e}")
 
 default_args = {
     'owner': 'Ved',

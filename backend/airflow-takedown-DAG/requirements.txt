@@ -2,3 +2,4 @@ apache-airflow==2.9.2
 confluent-kafka
 requests
 PyYAML
+psycopg2-binary
