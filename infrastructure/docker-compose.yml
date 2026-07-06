@@ -211,6 +211,8 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - shield-grafana-data:/var/lib/grafana
     networks:
       - shield-network
 
@@ -266,3 +268,4 @@ networks:
 
 volumes:
   shield-db-data:
+  shield-grafana-data:
