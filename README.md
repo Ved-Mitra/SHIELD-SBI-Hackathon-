@@ -6,14 +6,14 @@
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 SHIELD is a cloud-native, five-layer, cross-platform security system designed to defend State Bank of India's digital banking ecosystem (YONO) against malicious "look-alike" phishing applications distributed via side-loading and social engineering vectors. 
 
 By unifying hardware-rooted app attestation, real-time machine learning, and zero-cost open-source infrastructure, SHIELD shifts banking security from reactive blacklisting to proactive mathematical certainty.
 
 ---
 
-## 🏗️ 5-Layer System Architecture
+## 5-Layer System Architecture
 				┌────────────────────────┐
                 │   L0: Threat Origin    │ (SMS Smishing, WhatsApp Clones, Fake Store APKs)
                 └───────────┬────────────┘
@@ -36,74 +36,70 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
                 
 ---
 
-## 👥 Module Ownership & Work Division
+> **Note:** This repository contains the **Cloud-Native Backend Infrastructure** for SHIELD. The mobile client (KMP) and on-device ML models are hosted in separate branch.
 
-### 1. 🧠 URL Risk Engine (`/core-ml`)
-* **Owner:** Aditya Sharma
-* **Tech Stack:** Python, Hugging Face (BERT), ONNX Runtime, C++ Core Bindings.
-* **Responsibilities:**
-  * Quantized a transformer-based BERT classifier into **ONNX INT8 format** to process and score pasted URLs directly on local mobile clients under `<100ms`.
-  * Engineered a custom, low-latency algorithm to isolate and flag specialized **Devanagari-Latin Unicode homograph** lookalike attacks (e.g., `yonoŝbi.in`).
-  * Integrated **SHAP reason codes** to output human-readable threat indicators for SOC analysts.
 
-### 2. 🔐 Three-Gate Login & Client Foundation (`/mobile-kmp`)
-* **Owner:** Ved Mitra Verma
-* **Tech Stack:** Kotlin Multiplatform (KMP), Compose Multiplatform, Ktor Client, Swift (Fallback).
+### 1. Three-Gate Login Perimeter (`/backend/three-gate-login`)
+* **Tech Stack:** Go (Golang), Redis, RS256 JWT, Envoy Proxy.
 * **Responsibilities:**
-  * Built the unified mobile client codebase targeting dual-platform native runtimes from a single framework utilizing **Codemagic CI**.
-  * Structured the cryptographic sequential **Three-Gate authentication pipeline**:
-    * **Gate 1 (App Authenticity):** Hardware attestation abstractions mapping Google Play Integrity and Apple App Attest.
-    * **Gate 2 (Channel Authenticity):** Strict mutual TLS (mTLS) configurations and SHA-256 certificate pinning via OkHttp/Darwin network engines.
-    * **Gate 3 (User Authenticity):** Implemented an un-phishable cryptographic layer using hardware-bound **FIDO2 WebAuthn** protocol constraints to render credential harvesting impossible.
+  * **Gate 1 (Device Authenticity):** Hardware attestation validation mapping Google Play Integrity and Apple App Attest.
+  * **Gate 2 (Channel Authenticity):** Strict mutual TLS (mTLS) configurations via an Envoy proxy to eliminate Man-in-the-Middle attacks.
+  * **Gate 3 (User Authenticity):** Hardware-bound **FIDO2 WebAuthn** protocol constraints to render credential harvesting and phishing impossible.
 
-### 3. 🔍 Passive APK Live Scanner (`/android-watchdog`)
-* **Owner:** Brijesh Thakkar
-* **Tech Stack:** Kotlin, Android SDK, Android Jetpack WorkManager, freeRASP SDK.
+### 2. Risk URL API Engine (`/backend/risk-url-engine`)
+* **Tech Stack:** Go (Golang), Apache Kafka.
 * **Responsibilities:**
-  * Implemented a background-persistent **WorkManager service** running within the native `androidMain` multiplatform lifecycle.
-  * Utilized `PackageManager.GET_SIGNING_CERTIFICATES` to continuously enumerate installed platform apps and calculate **Levenshtein-distance fuzzy string rules** against unauthorized bank brand variations.
-  * Set up immediate in-app warning alerts on detecting certificate signature fingerprint mismatches.
-  * Embedded **freeRASP** for runtime debugging blocks, emulator termination, and hook framework detection (Frida/Xposed).
+  * High-throughput REST API endpoint that receives localized threat intel from mobile clients.
+  * Instantly publishes confirmed malicious zero-day phishing links into the real-time event stream.
 
-### 4. 🔀 Airflow Takedown DAG (`/automation-pipeline`)
-* **Owner:** Aakarsh Sinha
-* **Tech Stack:** Python, Apache Airflow, REST APIs.
+### 3. Real-Time Threat Intelligence (`/backend/auth-intel-database` & `/thread-intel-database`)
+* **Tech Stack:** Go (Golang), PostgreSQL, Apache Kafka, Zookeeper.
 * **Responsibilities:**
-  * Programmed high-speed automation workflows using **Apache Airflow Directed Acyclic Graphs (DAGs)** to bypass human manual handling constraints.
-  * Configured parallel worker tasks that trigger webhook reporting calls to the Google Play Console Developer API, dynamic hosting provider DMCA takedown schemes, **I4C Cybercrime platform**, and **CERT-In**.
-  * Optimized execution profiles to route full system incidents safely to endpoints in roughly **8 seconds**, driving target infrastructure takedown SLA times down to `<4 hours`.
+  * Event-driven consumer microservices that listen to `auth-events` and `url-events` Kafka topics.
+  * Maintains an immutable audit log of all brute-force attempts and a deduplicated database of active phishing threats.
 
-### 5. 🗣️ Bhashini Integration & YONO Guardian Dashboard (`/analytics-dashboard`)
-* **Owner:** Mayank Tiwari
-* **Tech Stack:** Python (FastAPI), Grafana, Leaflet.js, PostgreSQL/PostGIS, Apache Kafka & Flink.
+### 4. Automated Takedown Pipeline (`/backend/airflow-takedown-DAG`)
+* **Tech Stack:** Python, Apache Airflow, PostgreSQL.
 * **Responsibilities:**
-  * Built the localization layer integrating the **Govt. of India’s Bhashini AI Platform**, configuring real-time on-the-fly Neural Machine Translation (NMT) and Text-to-Speech (TTS) safety audio playback in priority regional Indian languages.
-  * Deployed the containerized **YONO Guardian Dashboard** via Grafana to present centralized visibility parameters.
-  * Integrated spatial heatmaps with **Leaflet.js** and PostGIS to render mock district-level fraud surge alerts generated asynchronously by stream processing engines.
+  * Configured Airflow Directed Acyclic Graphs (DAGs) to bypass human manual handling constraints.
+  * Currently simulates takedown task orchestration for Google SafeBrowsing, I4C, and CERT-In. Updates the PostgreSQL database upon completion to drive dashboard state.
+
+### 5. Dashboard (Grafana)
+* **Tech Stack:** Grafana, PostgreSQL.
+* **Responsibilities:**
+  * Containerized SOC (Security Operations Center) dashboard providing real-time visibility into global fraud surges, brute force IP blocks, and phishing takedown status.
 
 ---
 
-## 🛠️ Complete Technical Stack
+## 🚀 To Be Done (Future / Enhancements)
+While the core zero-trust authentication perimeter is fully functional, the following components are scheduled for future backend implementation:
+
+* **Apache Flink Analytics Engine:** Integrating Flink on top of Kafka to process complex sliding-window event patterns (CEP) and detect coordinated geographic botnets in real-time.
+* **PostGIS and Spatial Heatmaps:** Enabling PostGIS extensions in PostgreSQL and building a custom dashboard map to visually render active cyber-attacks across districts in India based on live GPS coordinates.
+* **Actual Airflow Takedown API Calls:** Replacing the Python logging stubs in the Airflow DAG with live, authenticated REST `requests` to the Google Play Developer API, CERT-In MISP TAXII servers, and TRAI DLT portals.
+
+---
+
+## Complete Technical Stack
 
 | Domain | Component Stack |
 | :--- | :--- |
-| **Mobile Frontend** | Kotlin Multiplatform (KMP), Compose Multiplatform, Ktor Core, freeRASP SDK, Codemagic CI |
-| **Backend Framework** | Python (FastAPI), Go (Golang), Apache Airflow DAG Engines |
-| **Streaming & Data Processing**| Apache Kafka Event Broker, Apache Flink Streaming Engine |
-| **Storage & Caching** | Redis Caching, PostgreSQL with PostGIS extensions, Elasticsearch |
-| **Threat Intelligence** | MISP local instance, STIX 2.1 JSON Schema, TAXII 2.1 Protocols |
-| **Sovereign Interfacing** | Digital India Bhashini AI API, TRAI DLT Webhook Portals, GSMA CAMARA Gateway |
+| **Backend Microservices** | Go (Golang) 1.26, Python |
+| **Streaming & Data Processing**| Apache Kafka Event Broker, Zookeeper |
+| **Storage & Caching** | Redis 7, PostgreSQL 15 |
+| **API Proxy** | Envoy Proxy (mTLS Termination) |
+| **Automation & Visualization** | Apache Airflow, Grafana |
 
 ---
 
-## ⚡ Setup & Installation
+## Setup & Installation
 
 ### Prerequisites
-* **Android Development:** Android Studio Hedgehog+, JDK 17
-* **iOS Compilation:** macOS environment with Xcode 15+ (or build automated through our Codemagic pipeline configurations)
-* **Backend Ingestion Components:** Docker and Docker Compose installed
+* **Backend Components:** Docker and Docker Compose installed
 
-### Docker Ingestion Setup
-Spin up the backend telemetry pipeline, caching servers, and database schemas with a single command:
+### Docker Setup
+Spin up the backend pipeline, caching servers, and database schemas with a single command:
 ```bash
-docker-compose -f infrastructure/docker-compose.yml up -d
+docker compose -f infrastructure/docker-compose.yml up -d
+docker compose -f infrastructure/DAG/docker-compose.yml up -d
+```
