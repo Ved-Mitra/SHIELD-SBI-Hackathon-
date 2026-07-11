@@ -37,7 +37,7 @@ fun App() {
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Button(
                     onClick = {
                         scope.launch {
@@ -47,12 +47,12 @@ fun App() {
                         }
                     },
                     enabled = loginState == LoginState.Idle || loginState is LoginState.Error,
-                    modifier = Modifier.weight(1f).height(50.dp)
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("1. Register Passkey")
+                    Text("1. Register passkey")
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
                     onClick = {
@@ -63,7 +63,7 @@ fun App() {
                         }
                     },
                     enabled = loginState == LoginState.Idle || loginState is LoginState.Error,
-                    modifier = Modifier.weight(1f).height(50.dp)
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
                     Text("2. Authenticate")
                 }
