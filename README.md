@@ -100,7 +100,7 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
 
 ### Prerequisites
 * **Android Development:** Android Studio Hedgehog+, JDK 17
-* **iOS Compilation:** macOS environment with Xcode 15+ (or build automated through our Codemagic pipeline configurations)
+* **iOS Compilation:** macOS environment with Xcode 16+ and iOS 18.0+ deployment target.
 * **Backend Ingestion Components:** Docker and Docker Compose installed
 
 ### Docker Ingestion Setup

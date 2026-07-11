@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Dark Blue Outer Shield -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M12,1L3,5v6c0,5.55 3.84,10.74 9,12c5.16,-1.26 9,-6.45 9,-12V5L12,1z" />
+    <!-- Lighter Blue Inner Shield -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M12,3L5,6v5.5c0,4.42 2.76,8.4 7,9.5 4.24,-1.1 7,-5.08 7,-9.5V6L12,3z" />
+    <!-- Checkmark inside shield -->
+<!--    <path-->
+<!--        android:fillColor="#FFFFFF"-->
+<!--        android:pathData="M10.5,15l-3.5,-3.5 1.41,-1.41L10.5,12.17l5.59,-5.59L17.5,8l-7,7z" />-->
+</vector>
