@@ -11,6 +11,7 @@ actual class AppAttestation actual constructor() {
         return try {
             val integrityManager = IntegrityManagerFactory.create(AndroidContextProvider.context)
             val request = IntegrityTokenRequest.builder()
+                .setCloudProjectNumber(428692187318)
                 .setNonce(nonce)
                 .build()
             
