@@ -46,6 +46,7 @@ kotlin {
             implementation("androidx.biometric:biometric:1.1.0") // For Biometric/PIN Prompt
         }
         commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)

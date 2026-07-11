@@ -7,6 +7,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Search
+import org.example.shield.ui.main.MainScreen
+
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -19,7 +29,34 @@ class MainActivity : FragmentActivity() {
         AndroidContextProvider.context = this
 
         setContent {
-            App()
+            var selectedTab by remember { mutableStateOf(0) }
+            
+            Scaffold(
+                bottomBar = {
+                    NavigationBar {
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Filled.Security, contentDescription = "Gate Login") },
+                            label = { Text("Gate Login") },
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 }
+                        )
+                        NavigationBarItem(
+                            icon = { Icon(Icons.Filled.Search, contentDescription = "Scanner") },
+                            label = { Text("Scanner") },
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 }
+                        )
+                    }
+                }
+            ) { paddingValues ->
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    if (selectedTab == 0) {
+                        App()
+                    } else {
+                        MainScreen(onItemClick = {})
+                    }
+                }
+            }
         }
     }
 }
