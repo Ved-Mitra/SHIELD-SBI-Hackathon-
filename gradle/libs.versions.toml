@@ -16,6 +16,10 @@ material3 = "1.11.0-alpha07"
 coroutines = "1.10.2"
 nav3Core = "1.0.1"
 lifecycleViewmodelNav3 = "2.10.0"
+ktor = "3.5.1"
+playIntegrity = "1.3.0"
+kotlinxCoroutinesPlay = "1.7.3"
+androidxBiometric = "1.1.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -40,6 +44,20 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
+# Ktor
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+# Ktor Content Negotiation
+ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+# Ktor JSON Serialization (Kotlinx)
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+# Real Gate-1 Attestation
+google-play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
+# For .await() on Google Tasks
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlay" }
+# For Biometric/PIN Prompt
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "androidxBiometric" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

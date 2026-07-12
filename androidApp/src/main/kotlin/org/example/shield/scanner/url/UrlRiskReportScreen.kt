@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 
 // Premium Colors matching YONO & SHIELD styling
 val ThemeNavyDark = Color(0xFF0A1128)
@@ -56,6 +57,9 @@ fun UrlRiskReportScreen(
     var riskReport by remember { mutableStateOf<RiskReport?>(null) }
     var isScanning by remember { mutableStateOf(false) }
     
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val threatIntelClient = remember { org.example.shield.scanner.url.UrlReportClient() }
+    
     val keyboardController = LocalSoftwareKeyboardController.current
     val scrollState = rememberScrollState()
 
@@ -68,6 +72,21 @@ fun UrlRiskReportScreen(
         val urlToScan = urlInput
         Thread {
             val result = UrlRiskScorer.score(urlToScan, classifier)
+            
+            if (result.riskLevel == RiskLevel.HIGH || result.riskLevel == RiskLevel.CRITICAL) {
+                val deviceId = android.provider.Settings.Secure.getString( context.contentResolver, android.provider.Settings.Secure.ANDROID_ID) ?: "unknown_device"
+                
+                val reportPayload = org.example.shield.scanner.url.UrlReportRequest(
+                    url = result.url,
+                    deviceId = deviceId,
+                    timestamp = System.currentTimeMillis()
+                )
+                
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    threatIntelClient.reportUrl(reportPayload)
+                }
+            }
+
             // Post result back to the main thread for UI update
             android.os.Handler(android.os.Looper.getMainLooper()).post {
                 riskReport = result
@@ -86,6 +105,24 @@ fun UrlRiskReportScreen(
             val result = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
                 UrlRiskScorer.score(initialUrl, classifier)
             }
+            
+            if (result.riskLevel == RiskLevel.HIGH || result.riskLevel == RiskLevel.CRITICAL) {
+                val deviceId = android.provider.Settings.Secure.getString(
+                    context.contentResolver, 
+                    android.provider.Settings.Secure.ANDROID_ID
+                ) ?: "unknown_device"
+                
+                val reportPayload = org.example.shield.scanner.url.UrlReportRequest(
+                    url = result.url,
+                    deviceId = deviceId,
+                    timestamp = System.currentTimeMillis()
+                )
+                
+                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    threatIntelClient.reportUrl(reportPayload)
+                }
+            }
+
             riskReport = result
             isScanning = false
         }
