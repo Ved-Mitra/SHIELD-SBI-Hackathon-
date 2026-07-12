@@ -1,7 +1,7 @@
 package org.example.shield
 
 import android.os.Bundle
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
@@ -17,7 +17,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Search
 import org.example.shield.ui.main.MainScreen
 
-class MainActivity : FragmentActivity() {
+class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = androidx.activity.SystemBarStyle.light(
@@ -58,7 +58,7 @@ class MainActivity : FragmentActivity() {
                     if (selectedTab == 0) {
                         App()
                     } else {
-                        MainScreen(onItemClick = {})
+                        org.example.shield.ui.main.MainScreen(onItemClick = {})
                     }
                 }
             }
