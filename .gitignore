@@ -15,10 +15,11 @@ three-gate-login-service-account.json
 secrets/
 .env
 
-#code review
+#code review & scripts
 shield_code_review.md
 demo.md
 project-summary.md
 attack-demo.md
 points.txt
 relation.md
+cmd.txt
