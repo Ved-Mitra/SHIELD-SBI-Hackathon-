@@ -2,7 +2,7 @@
 
 ### 🛡️ SBI Finnovation Hackathon 2026 Submission
 **Team Name:** PhishKillers (IIT Jodhpur)  
-**Team Members:** Ved Mitra Verma (Leader), Aditya Sharma, Brijesh Thakkar, Aakarsh Sinha, Mayank Tiwari  
+**Team Members:** Ved Mitra Verma, Aditya Sharma
 
 ---
 
@@ -35,9 +35,6 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
                 └────────────────────────┘
                 
 ---
-
-> **Note:** This repository contains the **Cloud-Native Backend Infrastructure** for SHIELD. The mobile client (KMP) and on-device ML models are hosted in separate branch.
-
 
 ### 1. Three-Gate Login Perimeter (`/backend/three-gate-login`)
 * **Tech Stack:** Go (Golang), Redis, RS256 JWT, Envoy Proxy.
