@@ -84,33 +84,33 @@ fun App() {
                 is LoginState.Gate2InProgress -> {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Gate 1 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 1 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
                     Text("Gate 2: Establishing mTLS Channel...", style = MaterialTheme.typography.bodyLarge)
                 }
                 is LoginState.Gate3InProgress -> {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.tertiary)
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Gate 1 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
-                    Text("Gate 2 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 1 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 2 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
                     Text("Gate 3: Prompting FIDO2 Biometrics...", style = MaterialTheme.typography.bodyLarge)
                 }
                 is LoginState.Success -> {
-                    Text("Gate 1 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
-                    Text("Gate 2 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
-                    Text("Gate 3 ✓ Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 1 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 2 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
+                    Text("Gate 3 Passed", color = androidx.compose.ui.graphics.Color(0xFF4CAF50))
                     Spacer(modifier = Modifier.height(24.dp))
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("🎉 Authentication Successful!", style = MaterialTheme.typography.titleMedium)
+                            Text("Authentication Successful!", style = MaterialTheme.typography.titleMedium)
                             Text("Session Token: ${state.sessionToken.take(15)}...", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
                 is LoginState.Error -> {
-                    Text("❌ Authentication Failed", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
+                    Text("Authentication Failed", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(state.message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
