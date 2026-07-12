@@ -68,7 +68,7 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
 
 ---
 
-## 🚀 To Be Done (Future / Enhancements)
+## To Be Done (Future / Enhancements)
 While the core zero-trust authentication perimeter is fully functional, the following components are scheduled for future backend implementation:
 
 * **Apache Flink Analytics Engine:** Integrating Flink on top of Kafka to process complex sliding-window event patterns (CEP) and detect coordinated geographic botnets in real-time.
