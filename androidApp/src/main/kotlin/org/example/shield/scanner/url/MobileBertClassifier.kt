@@ -1,14 +1,8 @@
 package org.example.shield.scanner.url
 
-import org.example.shield.scanner.url.UrlClassifier
-
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import ai.onnxruntime.OnnxTensor
-
-interface UrlClassifier {
-    fun classify(url: String): Double
-}
 
 class MobileBertClassifier : UrlClassifier {
     private var env: OrtEnvironment? = null
@@ -26,7 +20,7 @@ class MobileBertClassifier : UrlClassifier {
         }
     }
 
-    override fun classify(url: String): Double {
+    override fun classify(url: String): Double? {
         if (!isInitialized || session == null || env == null) {
             // Fallback: execute a deterministic, multi-feature character-based simulation
             return simulateMlPrediction(url)

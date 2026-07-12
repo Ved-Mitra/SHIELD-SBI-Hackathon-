@@ -18,9 +18,10 @@ class UrlInterceptorActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Initialize model from assets
-        initClassifier()
+
+        // Initialize model on a background thread to avoid blocking the main thread (ANR)
+        // The 23MB ONNX model takes several seconds to load from storage
+        Thread { initClassifier() }.start()
 
         // Read URL if the activity was launched system-wide via a clicked link
         val initialUrl = intent?.data?.toString() ?: intent?.dataString

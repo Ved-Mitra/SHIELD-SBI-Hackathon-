@@ -63,14 +63,17 @@ fun UrlRiskReportScreen(
         if (urlInput.isBlank()) return
         isScanning = true
         keyboardController?.hide()
-        
-        // Execute scoring (MobileBERT + Heuristic + SHAP)
-        // Wrapped in a tiny thread delay to simulate network/model latency
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        handler.postDelayed({
-            riskReport = UrlRiskScorer.score(urlInput, classifier)
-            isScanning = false
-        }, 500)
+
+        // Run ONNX inference on a background thread to avoid ANR
+        val urlToScan = urlInput
+        Thread {
+            val result = UrlRiskScorer.score(urlToScan, classifier)
+            // Post result back to the main thread for UI update
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                riskReport = result
+                isScanning = false
+            }
+        }.start()
     }
 
     // Auto-scan if launched with an initial URL from link interception (SMS / WhatsApp clicks)
@@ -79,7 +82,11 @@ fun UrlRiskReportScreen(
             urlInput = initialUrl
             isScanning = true
             delay(400) // Brief animation delay
-            riskReport = UrlRiskScorer.score(initialUrl, classifier)
+            // Run ONNX inference on IO dispatcher to avoid blocking the main thread
+            val result = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                UrlRiskScorer.score(initialUrl, classifier)
+            }
+            riskReport = result
             isScanning = false
         }
     }
