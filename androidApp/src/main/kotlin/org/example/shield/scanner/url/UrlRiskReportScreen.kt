@@ -83,7 +83,15 @@ fun UrlRiskReportScreen(
                 )
                 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                    threatIntelClient.reportUrl(reportPayload)
+                    try {
+                        kotlinx.coroutines.withTimeout(5000L) {
+                            threatIntelClient.reportUrl(reportPayload)
+                        }
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        println("Backend offline, URL report cancelled to save memory.")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
 
@@ -119,7 +127,15 @@ fun UrlRiskReportScreen(
                 )
                 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                    threatIntelClient.reportUrl(reportPayload)
+                    try {
+                        kotlinx.coroutines.withTimeout(5000L) {
+                            threatIntelClient.reportUrl(reportPayload)
+                        }
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        println("Backend offline, URL report cancelled to save memory.")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
 
