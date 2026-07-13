@@ -4,6 +4,7 @@ import org.example.shield.scanner.url.RiskReport
 import org.example.shield.scanner.url.RiskLevel
 import org.example.shield.scanner.url.UrlRiskScorer
 import org.example.shield.scanner.url.ShapFeature
+import org.example.shield.AppLanguages
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -58,6 +59,38 @@ fun UrlRiskReportScreen(
     var isScanning by remember { mutableStateOf(false) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
+    val currentLang by AppLanguages.selectedLanguage
+
+    DisposableEffect(riskReport) {
+        var mediaPlayer: android.media.MediaPlayer? = null
+
+        if(riskReport!=null && (riskReport!!.riskLevel == RiskLevel.HIGH || riskReport!!.riskLevel== RiskLevel.CRITICAL)){
+            try{
+                mediaPlayer = android.media.MediaPlayer()
+                val fileName = "${currentLang.lowercase()}.mp3"
+                val descriptor = context.assets.openFd(fileName)
+
+                mediaPlayer.setDataSource(
+                    descriptor.fileDescriptor,
+                    descriptor.startOffset,
+                    descriptor.length
+                )
+                descriptor.close()
+
+                mediaPlayer.prepare()
+                mediaPlayer.isLooping=true
+                mediaPlayer.start()
+            }catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
+
+        onDispose {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+        }
+    }
+
     val threatIntelClient = remember { org.example.shield.scanner.url.UrlReportClient() }
     
     val keyboardController = LocalSoftwareKeyboardController.current
