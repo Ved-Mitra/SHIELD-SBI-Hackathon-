@@ -146,7 +146,7 @@ fun App() {
                 modifier=Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 32.dp, end = 16.dp) // Added top padding to account for status bar
-                    .background(Color(0xFF162752),shape= RoundedCornerShape(16.dp))
+                    .background(Color(0xFF7450B6),shape= RoundedCornerShape(16.dp))
                     .border(1.dp,Color.Gray, RoundedCornerShape(16.dp))
                     .clickable{expanded=true}
                     .padding(horizontal=12.dp, vertical = 6.dp)
