@@ -14,16 +14,22 @@ import kotlinx.coroutines.launch
 
 class MainScreenViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("shield_prefs", android.content.Context.MODE_PRIVATE)
+    
     private val _uiState = MutableStateFlow<MainScreenUiState>(MainScreenUiState.Loading)
     val uiState: StateFlow<MainScreenUiState> = _uiState.asStateFlow()
 
-    private val _isBackgroundScanEnabled = MutableStateFlow(true)
+    private val _isBackgroundScanEnabled = MutableStateFlow(prefs.getBoolean("bg_scan_enabled", true))
     val isBackgroundScanEnabled: StateFlow<Boolean> = _isBackgroundScanEnabled.asStateFlow()
 
     init {
         startScan()
-        // Ensure background worker is scheduled by default
-        ScannerWorker.schedule(application)
+        // Only schedule if it was previously enabled
+        if (_isBackgroundScanEnabled.value) {
+            ScannerWorker.schedule(application)
+        } else {
+            ScannerWorker.cancel(application)
+        }
     }
 
     fun startScan() {
@@ -41,6 +47,8 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
 
     fun toggleBackgroundScan(enabled: Boolean) {
         _isBackgroundScanEnabled.value = enabled
+        prefs.edit().putBoolean("bg_scan_enabled", enabled).apply()
+        
         if (enabled) {
             ScannerWorker.schedule(getApplication())
         } else {
