@@ -72,8 +72,8 @@ class UrlInterceptorActivity : ComponentActivity() {
             val uri = Uri.parse(url)
             val intent = Intent(Intent.ACTION_VIEW, uri)
             
-            // Query all activities capable of viewing the link
-            val resolveInfos = packageManager.queryIntentActivities(intent, 0)
+            // Query all activities capable of viewing the link, bypassing default app resolution
+            val resolveInfos = packageManager.queryIntentActivities(intent, android.content.pm.PackageManager.MATCH_ALL)
             val targetIntents = mutableListOf<Intent>()
             
             for (info in resolveInfos) {

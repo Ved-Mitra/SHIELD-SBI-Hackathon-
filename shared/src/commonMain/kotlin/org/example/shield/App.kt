@@ -158,7 +158,7 @@ fun App() {
                     Box(modifier = Modifier.padding(top = 40.dp)) {
                         Column(
                             modifier = Modifier
-                                .background(Color(0xFF0F1B3A), shape = RoundedCornerShape(8.dp))
+                                .background(Color(0xFF9272CE), shape = RoundedCornerShape(8.dp))
                                 .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                         ) {
                             AppLanguages.availableLanguages.forEach { lang ->
