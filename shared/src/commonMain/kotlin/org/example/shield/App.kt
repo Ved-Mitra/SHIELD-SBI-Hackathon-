@@ -142,20 +142,24 @@ fun App() {
             }
 
             // Moved language dropdown to the bottom of the Box so it renders ON TOP of the Column
-            Box(
-                modifier=Modifier
+            Column(
+                modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 32.dp, end = 16.dp) // Added top padding to account for status bar
-                    .background(Color(0xFF7450B6),shape= RoundedCornerShape(16.dp))
-                    .border(1.dp,Color.Gray, RoundedCornerShape(16.dp))
-                    .clickable{expanded=true}
-                    .padding(horizontal=12.dp, vertical = 6.dp)
-            ){
-                Row(verticalAlignment = Alignment.CenterVertically){
-                    Text(text="$currentLang ▼", color=Color.White, fontSize=12.sp)
+                    .padding(top = 32.dp, end = 16.dp), // Added top padding to account for status bar
+                horizontalAlignment = Alignment.End
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xFF7450B6), shape = RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.Gray, RoundedCornerShape(16.dp))
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "$currentLang ▼", color = Color.White, fontSize = 12.sp)
                 }
+
                 if (expanded) {
-                    Box(modifier = Modifier.padding(top = 40.dp)) {
+                    Box(modifier = Modifier.padding(top = 4.dp)) {
                         Column(
                             modifier = Modifier
                                 .background(Color(0xFF9272CE), shape = RoundedCornerShape(8.dp))
