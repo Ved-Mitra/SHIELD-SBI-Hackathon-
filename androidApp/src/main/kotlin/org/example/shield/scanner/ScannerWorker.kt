@@ -62,7 +62,7 @@ class ScannerWorker(
         )
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_stat_shield)
             .setContentTitle("SHIELD Security Alert: $threatCount Threat(s) Detected")
             .setContentText("High-risk sideloaded app detected: $firstThreatName. Tap to view details and remove.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
