@@ -85,7 +85,24 @@ While the core zero-trust authentication perimeter is fully functional, the foll
 | **Streaming & Data Processing**| Apache Kafka Event Broker, Zookeeper |
 | **Storage & Caching** | Redis 7, PostgreSQL 15 |
 | **API Proxy** | Envoy Proxy (mTLS Termination) |
-| **Automation & Visualization** | Apache Airflow, Grafana |
+| **Automation & Visualization** | Apache Airflow, Grafana, Prometheus, Loki |
+
+---
+
+## Exposed Ports
+
+| Service | Port | Description |
+| :--- | :--- | :--- |
+| **Grafana** | `3000` | Analytics and Observability Dashboard |
+| **Prometheus** | `9090` | Metrics scraper |
+| **Loki** | `3100` | Log aggregation |
+| **PostgreSQL** | `5432` | Primary Database (`intel_db`) |
+| **Redis** | `6379` | Nonce and session caching |
+| **Gate 1** | `8081` | Device Authenticity API |
+| **Gate 2 Proxy** | `8443` | External Envoy mTLS entrypoint |
+| **Gate 3** | `8082` | FIDO2 WebAuthn API |
+| **Risk URL Engine**| `8083` | Phishing Report Ingestion API |
+| **Kafka** | `9092` | Event stream broker |
 
 ---
 
