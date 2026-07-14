@@ -173,6 +173,7 @@ fun App() {
                                         .fillMaxWidth()
                                         .clickable {
                                             currentLang = lang
+                                            AppLanguages.saveLanguagePreference?.invoke(lang)
                                             expanded = false
                                         }
                                         .padding(12.dp)

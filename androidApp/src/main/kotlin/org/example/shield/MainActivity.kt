@@ -34,6 +34,13 @@ class MainActivity : FragmentActivity() {
         // Provide the Activity context for BiometricPrompt
         AndroidContextProvider.context = this
 
+        // Load Language Preferences
+        val prefs = getSharedPreferences("ShieldPrefs", android.content.Context.MODE_PRIVATE)
+        AppLanguages.selectedLanguage.value = prefs.getString("selected_language", "Hindi") ?: "Hindi"
+        AppLanguages.saveLanguagePreference = { newLang ->
+            prefs.edit().putString("selected_language", newLang).apply()
+        }
+
         setContent {
             var selectedTab by remember { mutableStateOf(0) }
             

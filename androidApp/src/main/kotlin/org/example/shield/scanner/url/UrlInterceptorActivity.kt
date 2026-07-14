@@ -26,6 +26,13 @@ class UrlInterceptorActivity : ComponentActivity() {
         // Read URL if the activity was launched system-wide via a clicked link
         val initialUrl = intent?.data?.toString() ?: intent?.dataString
 
+        // Load Language Preferences
+        val prefs = getSharedPreferences("ShieldPrefs", android.content.Context.MODE_PRIVATE)
+        org.example.shield.AppLanguages.selectedLanguage.value = prefs.getString("selected_language", "Hindi") ?: "Hindi"
+        org.example.shield.AppLanguages.saveLanguagePreference = { newLang ->
+            prefs.edit().putString("selected_language", newLang).apply()
+        }
+
         setContent {
             MaterialTheme {
                 Surface(
