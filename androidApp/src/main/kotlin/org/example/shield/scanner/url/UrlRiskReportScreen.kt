@@ -117,9 +117,13 @@ fun UrlRiskReportScreen(
                 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
-                        kotlinx.coroutines.withTimeout(5000L) {
-                            threatIntelClient.reportUrl(reportPayload)
-                        }
+                            val reportResult = threatIntelClient.reportUrl(reportPayload)
+                            if (reportResult.isFailure) {
+                                println("SHIELD ERROR: Failed to send URL report to backend!")
+                                reportResult.exceptionOrNull()?.printStackTrace()
+                            } else {
+                                println("SHIELD SUCCESS: URL report sent to backend!")
+                            }
                     } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                         println("Backend offline, URL report cancelled to save memory.")
                     } catch (e: Exception) {
@@ -161,9 +165,13 @@ fun UrlRiskReportScreen(
                 
                 kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                     try {
-                        kotlinx.coroutines.withTimeout(5000L) {
-                            threatIntelClient.reportUrl(reportPayload)
-                        }
+                            val reportResult = threatIntelClient.reportUrl(reportPayload)
+                            if (reportResult.isFailure) {
+                                println("SHIELD ERROR: Failed to send URL report to backend!")
+                                reportResult.exceptionOrNull()?.printStackTrace()
+                            } else {
+                                println("SHIELD SUCCESS: URL report sent to backend!")
+                            }
                     } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
                         println("Backend offline, URL report cancelled to save memory.")
                     } catch (e: Exception) {
