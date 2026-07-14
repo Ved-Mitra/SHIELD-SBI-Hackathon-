@@ -93,7 +93,7 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 	var credential *webauthn.Credential
 	if h.MockFido2 {
 		credential = &webauthn.Credential{
-			ID:              []byte("new_credential_id"),
+			ID:              []byte(fmt.Sprintf("mock_cred_%s", username)),
 			PublicKey:       []byte("mock_public_key"),
 			AttestationType: "mock",
 		}
@@ -109,7 +109,10 @@ func (h *WebAuthnHandler) RegisterFinish(w http.ResponseWriter, r *http.Request)
 
 	go kafka.PublishEvent(kafka.AuthEvent{UserID: username, Gate: 3, Status: "PASSED", Reason: "Gate-3 Registration finished", TimeStamp: time.Now().UnixMilli()})
 
-	h.UserStore.AddCredential(r.Context(), username, credential)
+	if err := h.UserStore.AddCredential(r.Context(), username, credential); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	h.Sessions.Delete(r.Context(), "reg:"+username)
 
 	w.WriteHeader(http.StatusCreated)
@@ -142,8 +145,8 @@ func (h *WebAuthnHandler) AuthBegin(w http.ResponseWriter, r *http.Request) {
 
 	assertion, sessionData, err := h.WebAuthn.BeginLogin(user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %d", http.StatusInternalServerError), TimeStamp: time.Now().UnixMilli()})
+		http.Error(w, fmt.Sprintf(`{"error":"BeginLogin failed", "details": "%v"}`, err), http.StatusInternalServerError)
+		go kafka.PublishEvent(kafka.AuthEvent{UserID: req.Username, Gate: 3, Status: "FAILED", Reason: fmt.Sprintf("Server error: %v", err), TimeStamp: time.Now().UnixMilli()})
 		return
 	}
 

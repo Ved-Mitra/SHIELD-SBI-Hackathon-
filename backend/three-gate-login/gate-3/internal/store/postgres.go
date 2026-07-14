@@ -82,6 +82,7 @@ func (s *PostgresUserStore) getUserWithCreds(ctx context.Context, id uuid.UUID, 
 		}
 		var cred webauthn.Credential
 		if err := json.Unmarshal(credJSON, &cred); err != nil {
+			fmt.Printf("ERROR unmarshaling credential for user %s: %v\n", username, err)
 			continue // skip malformed
 		}
 		user.credentials = append(user.credentials, cred)
