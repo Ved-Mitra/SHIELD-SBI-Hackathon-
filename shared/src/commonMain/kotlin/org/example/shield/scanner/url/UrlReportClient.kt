@@ -25,7 +25,7 @@ class UrlReportClient {
     suspend fun reportUrl(report: UrlReportRequest): Result<UrlReportResponse> {
         return withContext(Dispatchers.IO){
             try{
-                val response = client.post("http://10.19.6.43:8080/report"){
+                val response = client.post("http://10.19.6.43:8083/report"){
                     contentType(ContentType.Application.Json)
                     setBody(report)
                 }
