@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"shield/risk-url-engine/internal/kafka"
 )
@@ -20,6 +21,7 @@ type Response struct{
 }
 
 func HandleReportPhishing(w http.ResponseWriter, r* http.Request){
+	log.Printf("[INFO] Received %s request to /report from %s", r.Method, r.RemoteAddr)
 	if r.Method!=http.MethodPost {
 		http.Error(w,"Wrong Method Call",http.StatusMethodNotAllowed)
 		return
