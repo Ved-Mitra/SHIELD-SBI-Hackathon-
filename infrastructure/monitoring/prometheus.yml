@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  
+  - job_name: 'shield-backend'
+    static_configs:
+      - targets: 
+        - 'gate1-app:8081'
+        - 'gate2-app:8080'
+        - 'gate3-app:8082'
+        - 'risk-url-engine:8083'

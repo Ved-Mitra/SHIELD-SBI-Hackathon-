@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"golang.org/x/time/rate"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"shield/three-gate-login/internal/config"
 	"shield/three-gate-login/internal/handler"
@@ -42,6 +43,7 @@ func New(cfg config.Config) http.Handler {
 	// ── Mux ───────────────────────────────────────────────────────────────────
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", handler.Health)
+	mux.Handle("/metrics", promhttp.Handler())
 	mux.Handle("/gate2/token", tokenChain)
 
 	// ── Outer middleware (applies to all routes) ──────────────────────────────

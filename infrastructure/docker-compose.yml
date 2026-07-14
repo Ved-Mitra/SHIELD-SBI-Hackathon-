@@ -203,6 +203,44 @@ services:
       retries: 5
       start_period: 15s
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - shield-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - shield-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - shield-loki-data:/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - shield-network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - shield-network
+
   dashboard:
     image: grafana/grafana:latest
     container_name: shield-dashboard
@@ -213,6 +251,9 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - shield-grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
     networks:
       - shield-network
 
@@ -269,3 +310,5 @@ networks:
 volumes:
   shield-db-data:
   shield-grafana-data:
+  shield-prometheus-data:
+  shield-loki-data:

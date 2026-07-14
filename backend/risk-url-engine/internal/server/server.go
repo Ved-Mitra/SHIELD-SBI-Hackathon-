@@ -2,10 +2,13 @@ package server
 
 import (
 	"net/http"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"shield/risk-url-engine/internal/config"
 	"shield/risk-url-engine/internal/handler"
 	"shield/risk-url-engine/internal/kafka"
-	"time"
 )
 
 
@@ -17,6 +20,7 @@ func New(cfg config.Config) (http.Handler, error) {
 
 	// health check
 	mux.HandleFunc("/healthz", handler.Health)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	//report check
 	mux.HandleFunc("/report", handler.HandleReportPhishing)

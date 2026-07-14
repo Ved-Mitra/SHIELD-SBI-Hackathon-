@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-webauthn/webauthn/webauthn"
 	"golang.org/x/time/rate"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"shield/gate3/internal/config"
 	"shield/gate3/internal/handler"
@@ -57,6 +58,7 @@ func New(cfg config.Config) (http.Handler, error) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", handler.Health)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// FIDO2 endpoints
 	fidoMux := http.NewServeMux()

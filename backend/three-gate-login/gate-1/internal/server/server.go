@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"golang.org/x/time/rate"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"shield/gate1/internal/config"
 	"shield/gate1/internal/handler"
@@ -47,6 +48,7 @@ func New(cfg config.Config) (http.Handler, error) {
 
 	// Health check — no rate limiting needed
 	mux.HandleFunc("/healthz", handler.Health)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	// Nonce generation endpoint — no rate limiting needed for demo
 	mux.HandleFunc("/gate1/nonce", handler.GenerateNonce)
