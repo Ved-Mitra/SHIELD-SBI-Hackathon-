@@ -28,6 +28,17 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
                 
 ---
 
+## Application Preview
+
+<table>
+  <tr>
+    <td><img src="Readme-images/ThreeGateLogin.jpeg" alt="Gate Login Tab Preview" width="250"/></td>
+    <td><img src="Readme-images/PassiveAPKScanner.jpeg" alt="Scanner Tab Preview" width="250"/></td>
+  </tr>
+</table>
+
+---
+
 ## Module Ownership & Work Division
 
 ### 1. URL Risk Engine (`/core-ml`)
