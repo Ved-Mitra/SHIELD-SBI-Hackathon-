@@ -111,7 +111,44 @@ While the core zero-trust authentication perimeter is fully functional, the foll
 ### Prerequisites
 * **Backend Components:** Docker and Docker Compose installed
 
-### Docker Setup
+### 1. Cryptographic Keys & Certificates Setup
+Before spinning up the containers, you must generate the RS256 JWT key pairs and the mTLS certificates for the three gates. Helper scripts are provided.
+
+Run the following commands from the root of the `Shield-backend` directory:
+
+```bash
+# 1. Generate Gate-1 JWT Keys
+chmod +x backend/three-gate-login/gate-1/scripts/gen-gate1-keys.sh
+cd backend/three-gate-login/gate-1 && ./scripts/gen-gate1-keys.sh && cd ../../../
+
+# 2. Generate Gate-2 JWT Keys
+chmod +x backend/three-gate-login/gate-2/scripts/gen-gate2-keys.sh
+cd backend/three-gate-login/gate-2 && ./scripts/gen-gate2-keys.sh && cd ../../../
+
+# 3. Generate Gate-2 mTLS Certificates (Server & Client CA)
+chmod +x backend/three-gate-login/gate-2/scripts/gen-certs.sh
+cd backend/three-gate-login/gate-2 && ./scripts/gen-certs.sh && cd ../../../
+
+# 4. Distribute Public Keys for Cross-Gate Token Verification
+# Gate-2 needs Gate-1's public key to verify the Gate-1 JWT
+cp backend/three-gate-login/gate-1/certs/gate1/public.pem backend/three-gate-login/gate-2/certs/gate1/public.pem
+
+# Gate-3 needs Gate-2's public key to verify the Gate-2 JWT
+mkdir -p backend/three-gate-login/gate-3/certs/gate2
+cp backend/three-gate-login/gate-2/certs/gate2/public.pem backend/three-gate-login/gate-3/certs/gate2/public.pem
+```
+
+*(Note: The client certificate generated in step 3 must be converted to a `.p12` file and placed in the Android app for local testing. See the Mobile App README for instructions).*
+
+### 2. Google Service Account (Mock)
+Gate-1 requires a Google Service Account to verify Play Integrity tokens. For local development, create a mock JSON file to prevent the container from crashing:
+
+```bash
+mkdir -p backend/three-gate-login/secrets
+echo '{"type":"service_account","project_id":"ci-mock","private_key_id":"mock","private_key":"","client_email":"ci@mock.iam.gserviceaccount.com","client_id":"0","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token"}' > backend/three-gate-login/secrets/three-gate-login-service-account.json
+```
+
+### 3. Docker Setup
 Spin up the backend pipeline, caching servers, and database schemas with a single command:
 ```bash
 docker compose -f infrastructure/docker-compose.yml up -d
