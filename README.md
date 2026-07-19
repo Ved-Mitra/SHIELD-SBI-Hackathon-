@@ -93,6 +93,31 @@ By unifying hardware-rooted app attestation, real-time machine learning, and zer
 * **Android Development:** Android Studio Hedgehog+, JDK 17
 * **iOS Compilation:** macOS environment with Xcode 16+ and iOS 18.0+ deployment target.
 
+### Network Configuration (Important)
+Before compiling, you must update the hardcoded backend IP addresses to point to your local machine (or `10.0.2.2` if using the Android Emulator). Update the IP in the following files:
+* `shared/src/androidMain/kotlin/org/example/shield/gate/Constants.kt`
+* `shared/src/commonMain/kotlin/org/example/shield/scanner/url/UrlReportClient.kt`
+
+### Gate-2 mTLS Setup (Local Development)
+To test Gate-2 locally, you must generate a mock client certificate (`client.p12`) and place it in the Android resources directory. The app expects the keystore password to be `"password"`.
+
+Run the following terminal commands to generate the certificate:
+
+```bash
+# 1. Create the raw res directory if it doesn't exist
+mkdir -p androidApp/src/main/res/raw
+
+# 2. Generate a new private key and a self-signed certificate
+openssl req -x509 -newkey rsa:2048 -keyout client.key -out client.crt -days 365 -nodes -subj "/CN=shield-client-dev"
+
+# 3. Bundle the key and certificate into a PKCS12 format (.p12) with password "password"
+openssl pkcs12 -export -out androidApp/src/main/res/raw/client.p12 -inkey client.key -in client.crt -passout pass:password
+
+# 4. Clean up the intermediate files
+rm client.key client.crt
+```
+Once the IP addresses are updated and the `client.p12` file is in `androidApp/src/main/res/raw/`, you can build and run the app.
+
 ### Building the Project
 Simply open the project directory in Android Studio and run a gradle sync. To build the debug APK:
 ```bash
