@@ -131,6 +131,7 @@ cd backend/three-gate-login/gate-2 && ./scripts/gen-certs.sh && cd ../../../
 
 # 4. Distribute Public Keys for Cross-Gate Token Verification
 # Gate-2 needs Gate-1's public key to verify the Gate-1 JWT
+mkdir -p backend/three-gate-login/gate-2/certs/gate1
 cp backend/three-gate-login/gate-1/certs/gate1/public.pem backend/three-gate-login/gate-2/certs/gate1/public.pem
 
 # Gate-3 needs Gate-2's public key to verify the Gate-2 JWT

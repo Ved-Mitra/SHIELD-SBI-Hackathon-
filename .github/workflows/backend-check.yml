@@ -43,6 +43,7 @@ jobs:
 
       - name: Copy Gate-1 public key to Gate-2 certs
         run: |
+          mkdir -p backend/backend/three-gate-login/gate-2/certs/gate1
           cp backend/backend/three-gate-login/gate-1/certs/gate1/public.pem \
              backend/backend/three-gate-login/gate-2/certs/gate1/public.pem
 
