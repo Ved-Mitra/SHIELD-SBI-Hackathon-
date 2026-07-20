@@ -3,19 +3,19 @@ name: iOS Demo Build
 on:
   push:
     paths:
-      - "iosApp/**"
-      - "shared/**"
-      - "androidApp/**"
-      - "gradle/**"
+      - "mobile/iosApp/**"
+      - "mobile/shared/**"
+      - "mobile/androidApp/**"
+      - "mobile/gradle/**"
       - ".github/workflows/**"
-      - "gradlew"
-      - "build.gradle.kts"
-      - "settings.gradle.kts"
+      - "mobile/gradlew"
+      - "mobile/build.gradle.kts"
+      - "mobile/settings.gradle.kts"
   pull_request:
     paths:
-      - "iosApp/**"
-      - "shared/**"
-      - "androidApp/**"
+      - "mobile/iosApp/**"
+      - "mobile/shared/**"
+      - "mobile/androidApp/**"
   workflow_dispatch:
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Make Gradlew Executable
-        run: chmod +x gradlew
+        run: cd mobile && chmod +x gradlew
 
       - name: Select Xcode Version
         uses: maxim-lobanov/setup-xcode@v1
@@ -45,6 +45,7 @@ jobs:
       # Compiles the native iOS application UI wrapper
       - name: Build iOS App (Simulator)
         run: |
+          cd mobile
           xcodebuild \
             -project "iosApp/iosApp.xcodeproj" \
             -scheme iosApp \

@@ -3,12 +3,12 @@ name: Airflow DAG CI
 on:
   push:
     paths:
-      - 'backend/airflow-takedown-DAG/**'
-      - 'infrastructure/DAG/docker-compose.yml'
+      - 'backend/backend/airflow-takedown-DAG/**'
+      - 'backend/infrastructure/DAG/docker-compose.yml'
   pull_request:
     paths:
-      - 'backend/airflow-takedown-DAG/**'
-      - 'infrastructure/DAG/docker-compose.yml'
+      - 'backend/backend/airflow-takedown-DAG/**'
+      - 'backend/infrastructure/DAG/docker-compose.yml'
 
 jobs:
   validate-dags:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd backend/airflow-takedown-DAG
+          cd backend/backend/airflow-takedown-DAG
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
@@ -41,7 +41,7 @@ jobs:
           os.environ['AIRFLOW_HOME'] = os.getcwd()
           
           # Parse the DAGs folder
-          dag_bag = DagBag(dag_folder='backend/airflow-takedown-DAG/dags', include_examples=False)
+          dag_bag = DagBag(dag_folder='backend/backend/airflow-takedown-DAG/dags', include_examples=False)
           
           if len(dag_bag.import_errors) > 0:
               print('❌ DAG import errors found:')
@@ -63,5 +63,5 @@ jobs:
 
       - name: Build Airflow Image
         run: |
-          cd backend/airflow-takedown-DAG
+          cd backend/backend/airflow-takedown-DAG
           docker build -t shield-airflow:ci-test .

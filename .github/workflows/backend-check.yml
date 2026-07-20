@@ -3,13 +3,13 @@ name: Backend Deployment Check
 on:
   push:
     paths:
-      - 'backend/**'
-      - 'infrastructure/**'
+      - 'backend/backend/**'
+      - 'backend/infrastructure/**'
       - '.github/workflows/backend-check.yml'
   pull_request:
     paths:
-      - 'backend/**'
-      - 'infrastructure/**'
+      - 'backend/backend/**'
+      - 'backend/infrastructure/**'
 
 jobs:
   validate-deployment:
@@ -25,42 +25,42 @@ jobs:
 
       - name: Generate Gate-1 JWT Keys
         run: |
-          cd backend/three-gate-login/gate-1
+          cd backend/backend/three-gate-login/gate-1
           chmod +x scripts/gen-gate1-keys.sh
           ./scripts/gen-gate1-keys.sh
 
       - name: Generate Gate-2 JWT Keys
         run: |
-          cd backend/three-gate-login/gate-2
+          cd backend/backend/three-gate-login/gate-2
           chmod +x scripts/gen-gate2-keys.sh
           ./scripts/gen-gate2-keys.sh
 
       - name: Generate Gate-2 mTLS Certificates (CA + Server + Client)
         run: |
-          cd backend/three-gate-login/gate-2
+          cd backend/backend/three-gate-login/gate-2
           chmod +x scripts/gen-certs.sh
           ./scripts/gen-certs.sh
 
       - name: Copy Gate-1 public key to Gate-2 certs
         run: |
-          cp backend/three-gate-login/gate-1/certs/gate1/public.pem \
-             backend/three-gate-login/gate-2/certs/gate1/public.pem
+          cp backend/backend/three-gate-login/gate-1/certs/gate1/public.pem \
+             backend/backend/three-gate-login/gate-2/certs/gate1/public.pem
 
       - name: Copy Gate-2 public key to Gate-3 certs
         run: |
-          mkdir -p backend/three-gate-login/gate-3/certs/gate2
-          cp backend/three-gate-login/gate-2/certs/gate2/public.pem \
-             backend/three-gate-login/gate-3/certs/gate2/public.pem
+          mkdir -p backend/backend/three-gate-login/gate-3/certs/gate2
+          cp backend/backend/three-gate-login/gate-2/certs/gate2/public.pem \
+             backend/backend/three-gate-login/gate-3/certs/gate2/public.pem
 
       - name: Create mock Google Service Account for CI
         run: |
-          mkdir -p backend/three-gate-login/secrets
+          mkdir -p backend/backend/three-gate-login/secrets
           echo '{"type":"service_account","project_id":"ci-mock","private_key_id":"mock","private_key":"","client_email":"ci@mock.iam.gserviceaccount.com","client_id":"0","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token"}' \
-            > backend/three-gate-login/secrets/three-gate-login-service-account.json
+            > backend/backend/three-gate-login/secrets/three-gate-login-service-account.json
 
       - name: Build and Start Services
         run: |
-          docker compose -f infrastructure/docker-compose.yml up -d --build
+          docker compose -f backend/infrastructure/docker-compose.yml up -d --build
 
       - name: Wait for services to be ready
         run: sleep 25
@@ -68,10 +68,10 @@ jobs:
       - name: Check Container Status
         run: |
           docker ps
-          docker compose -f infrastructure/docker-compose.yml logs gate1-app
-          docker compose -f infrastructure/docker-compose.yml logs gate2-app
-          docker compose -f infrastructure/docker-compose.yml logs gate2-proxy
-          docker compose -f infrastructure/docker-compose.yml logs gate3-app
+          docker compose -f backend/infrastructure/docker-compose.yml logs gate1-app
+          docker compose -f backend/infrastructure/docker-compose.yml logs gate2-app
+          docker compose -f backend/infrastructure/docker-compose.yml logs gate2-proxy
+          docker compose -f backend/infrastructure/docker-compose.yml logs gate3-app
 
       - name: Verify All Containers Are Running
         run: |
@@ -79,7 +79,7 @@ jobs:
             STATUS=$(docker inspect -f '{{.State.Running}}' $container 2>/dev/null || echo "false")
             if [ "$STATUS" != "true" ]; then
               echo "$container is NOT running"
-              docker compose -f infrastructure/docker-compose.yml logs $container
+              docker compose -f backend/infrastructure/docker-compose.yml logs $container
               exit 1
             else
               echo "$container is running"
@@ -96,4 +96,4 @@ jobs:
 
       - name: Stop Services
         if: always()
-        run: docker compose -f infrastructure/docker-compose.yml down -v
+        run: docker compose -f backend/infrastructure/docker-compose.yml down -v
