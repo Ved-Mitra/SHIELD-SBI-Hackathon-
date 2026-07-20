@@ -1,0 +1,314 @@
+
+services:
+  # ----------------------------------------
+  # Shared Data Infrastructure
+  # ----------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: shield-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=shield
+      - POSTGRES_PASSWORD=shield-pass
+      - POSTGRES_DB=intel_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U shield -d intel_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - shield-db-data:/var/lib/postgresql/data
+      - ../backend/user-database/schema.sql:/docker-entrypoint-initdb.d/0-user-schema.sql:ro
+      - ../backend/three-gate-login/gate-3/schema.sql:/docker-entrypoint-initdb.d/1-gate3-schema.sql:ro
+      - ../backend/thread-intel-database/schema/001_init.sql:/docker-entrypoint-initdb.d/2-threat-intel-schema.sql:ro
+      - ../backend/auth-intel-database/schema/001_init.sql:/docker-entrypoint-initdb.d/3-auth-intel-schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - shield-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: shield-redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Gate 1: App Authenticity
+  # ----------------------------------------
+  gate1-app:
+    build:
+      context: ../backend/three-gate-login/gate-1
+      dockerfile: Dockerfile
+    container_name: gate1-app
+    restart: unless-stopped
+    environment:
+      - GATE1_ADDR=:8081
+      - GATE1_REDIS_ADDR=shield-redis:6379
+      - GATE1_MOCK_ATTESTATION=true
+      - GATE1_SERVICE_ACCOUNT_PATH=/app/secrets/three-gate-login-service-account.json
+      - GATE1_JWT_PRIVATE_KEY_PATH=/app/certs/gate1/private.pem
+      - KAFKA_BROKER_URL=kafka:9092
+    volumes:
+      - ../backend/three-gate-login/gate-1/certs:/app/certs:ro
+      - ../backend/three-gate-login/secrets:/app/secrets:ro
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+      - kafka
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Gate 2: Channel Authenticity (mTLS)
+  # ----------------------------------------
+  gate2-app:
+    build:
+      context: ../backend/three-gate-login/gate-2
+      dockerfile: Dockerfile
+    container_name: gate2-app
+    restart: unless-stopped
+    environment:
+      - GATE2_ADDR=:8080
+      - GATE2_JWT_PRIVATE_KEY_PATH=/app/certs/gate2/private.pem
+      - GATE2_GATE1_PUBLIC_KEY_PATH=/app/certs/gate1/public.pem
+      - GATE2_MOCK_GATE1=false
+      - GATE2_MOCK_CLIENT_DN=false
+      - KAFKA_BROKER_URL=kafka:9092
+
+    volumes:
+      - ../backend/three-gate-login/gate-2/certs:/app/certs:ro
+    depends_on:
+      - gate1-app
+      - kafka
+    networks:
+      - shield-network
+
+  gate2-proxy:
+    image: envoyproxy/envoy:v1.30-latest
+    container_name: gate2-proxy
+    restart: unless-stopped
+    volumes:
+      - ../backend/three-gate-login/gate-2/deploy/envoy/envoy-docker.yaml:/etc/envoy/envoy.yaml:ro
+      - ../backend/three-gate-login/gate-2/certs/dev:/etc/envoy/certs:ro
+    ports:
+      - "8443:8443"
+      - "9901:9901"
+    depends_on:
+      - gate2-app
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Gate 3: User Authenticity (FIDO2)
+  # ----------------------------------------
+  gate3-app:
+    build:
+      context: ../backend/three-gate-login/gate-3
+      dockerfile: Dockerfile
+    container_name: gate3-app
+    restart: unless-stopped
+    environment:
+      - GATE3_ADDR=:8082
+      - GATE3_GATE2_PUBLIC_KEY_PATH=/app/certs/gate2/public.pem
+      - GATE3_REDIS_ADDR=shield-redis:6379
+      - GATE3_DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - GATE3_RP_ORIGIN=http://localhost:8080,http://localhost:8082,https://localhost:8443
+      - GATE3_MOCK_GATE2=false
+      - GATE3_MOCK_FIDO2=true
+      - KAFKA_BROKER_URL=kafka:9092
+    volumes:
+      - ../backend/three-gate-login/gate-3/certs:/app/certs:ro
+    ports:
+      - "8082:8082"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      gate2-app:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks:
+      - shield-network
+
+  #----------------------------------------
+  # Risk-URL-Engine
+  #----------------------------------------
+  risk-url-engine:
+    build:
+      context: ../backend/risk-url-engine
+      dockerfile: Dockerfile
+    container_name: risk-url-engine
+    restart: unless-stopped
+    environment:
+      - RISK_URL_ENGINE_ADDR=:8083
+      - KAFKA_BROKER_URL=kafka:9092
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Layer 3/4: Analytics (Existing)
+  # ----------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - shield-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'ruok' | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - shield-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - shield-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    networks:
+      - shield-network
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - shield-loki-data:/loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - shield-network
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - shield-network
+
+  dashboard:
+    image: grafana/grafana:latest
+    container_name: shield-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - shield-grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Thread-Intel-Database
+  # ----------------------------------------
+
+  thread-intel-consumer:
+    build:
+      context: ../backend/thread-intel-database
+      dockerfile: Dockerfile
+    container_name: thread-intel-consumer
+    environment:
+      - KAFKA_BROKER_URL=kafka:9092
+      - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - KAFKA_TOPIC=url-events
+      - KAFKA_GROUP_ID=threat-intel-db-group
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - shield-network
+
+  # ----------------------------------------
+  # Auth-Intel-Database
+  # ----------------------------------------
+
+  auth-intel-consumer:
+    build:
+      context: ../backend/auth-intel-database
+      dockerfile: Dockerfile
+    container_name: auth-intel-consumer
+    environment:
+      - KAFKA_BROKER_URL=kafka:9092
+      - DB_DSN=postgres://shield:shield-pass@shield-db:5432/intel_db?sslmode=disable
+      - KAFKA_TOPIC=auth-events
+      - KAFKA_GROUP_ID=auth-intel-db-group
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_started
+      db:
+        condition: service_healthy
+    networks:
+      - shield-network
+
+networks:
+  shield-network:
+    driver: bridge
+
+volumes:
+  shield-db-data:
+  shield-grafana-data:
+  shield-prometheus-data:
+  shield-loki-data:

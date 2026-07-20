@@ -1,0 +1,25 @@
+.gradle
+.idea
+.kotlin
+shared
+local.properties
+.aiexclude
+three-gate-login-service-account.json
+
+# Block specific private key files
+*.pem
+*.key
+*.json
+
+# Block entire sensitive directories
+secrets/
+.env
+
+#code review & scripts
+shield_code_review.md
+demo.md
+project-summary.md
+attack-demo.md
+points.txt
+relation.md
+cmd.txt

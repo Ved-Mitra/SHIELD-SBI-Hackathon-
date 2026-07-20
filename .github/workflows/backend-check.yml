@@ -1,0 +1,99 @@
+name: Backend Deployment Check
+
+on:
+  push:
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+      - '.github/workflows/backend-check.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'infrastructure/**'
+
+jobs:
+  validate-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Generate Gate-1 JWT Keys
+        run: |
+          cd backend/three-gate-login/gate-1
+          chmod +x scripts/gen-gate1-keys.sh
+          ./scripts/gen-gate1-keys.sh
+
+      - name: Generate Gate-2 JWT Keys
+        run: |
+          cd backend/three-gate-login/gate-2
+          chmod +x scripts/gen-gate2-keys.sh
+          ./scripts/gen-gate2-keys.sh
+
+      - name: Generate Gate-2 mTLS Certificates (CA + Server + Client)
+        run: |
+          cd backend/three-gate-login/gate-2
+          chmod +x scripts/gen-certs.sh
+          ./scripts/gen-certs.sh
+
+      - name: Copy Gate-1 public key to Gate-2 certs
+        run: |
+          cp backend/three-gate-login/gate-1/certs/gate1/public.pem \
+             backend/three-gate-login/gate-2/certs/gate1/public.pem
+
+      - name: Copy Gate-2 public key to Gate-3 certs
+        run: |
+          mkdir -p backend/three-gate-login/gate-3/certs/gate2
+          cp backend/three-gate-login/gate-2/certs/gate2/public.pem \
+             backend/three-gate-login/gate-3/certs/gate2/public.pem
+
+      - name: Create mock Google Service Account for CI
+        run: |
+          mkdir -p backend/three-gate-login/secrets
+          echo '{"type":"service_account","project_id":"ci-mock","private_key_id":"mock","private_key":"","client_email":"ci@mock.iam.gserviceaccount.com","client_id":"0","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token"}' \
+            > backend/three-gate-login/secrets/three-gate-login-service-account.json
+
+      - name: Build and Start Services
+        run: |
+          docker compose -f infrastructure/docker-compose.yml up -d --build
+
+      - name: Wait for services to be ready
+        run: sleep 25
+
+      - name: Check Container Status
+        run: |
+          docker ps
+          docker compose -f infrastructure/docker-compose.yml logs gate1-app
+          docker compose -f infrastructure/docker-compose.yml logs gate2-app
+          docker compose -f infrastructure/docker-compose.yml logs gate2-proxy
+          docker compose -f infrastructure/docker-compose.yml logs gate3-app
+
+      - name: Verify All Containers Are Running
+        run: |
+          for container in gate1-app gate2-app gate2-proxy gate3-app shield-db shield-redis; do
+            STATUS=$(docker inspect -f '{{.State.Running}}' $container 2>/dev/null || echo "false")
+            if [ "$STATUS" != "true" ]; then
+              echo "$container is NOT running"
+              docker compose -f infrastructure/docker-compose.yml logs $container
+              exit 1
+            else
+              echo "$container is running"
+            fi
+          done
+
+      - name: Health Check Gate-1
+        run: |
+          curl -f http://localhost:8081/healthz || (echo "Gate-1 health check failed" && exit 1)
+
+      - name: Health Check Gate-3
+        run: |
+          curl -f http://localhost:8082/healthz || (echo "Gate-3 health check failed" && exit 1)
+
+      - name: Stop Services
+        if: always()
+        run: docker compose -f infrastructure/docker-compose.yml down -v

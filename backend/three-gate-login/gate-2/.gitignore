@@ -1,0 +1,45 @@
+# Binaries and executables
+/gate2
+/gate2.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test related
+*.test
+*.out
+coverage.out
+
+# Certificates and Keys — NEVER commit private keys
+certs/dev/*.key
+certs/dev/*.csr
+certs/gate2/private.pem
+certs/gate2/*.key
+certs/gate1/private.pem   # if ever present locally
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Go dependencies (if using vendor)
+# vendor/
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Future development files
+# Docker related
+# .docker/
+# docker-compose.override.yml
+
+# Logs
+# logs/
+*.log
